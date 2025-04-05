@@ -1,0 +1,33 @@
+{
+  "name": "groceries-web-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "groceries-web-app": "file:",
+    "next": "15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.55.0",
+    "react-icons": "^5.5.0",
+    "shadcn": "^2.4.0-canary.17"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@hookform/devtools": "^4.3.3",
+    "@tailwindcss/postcss": "^4.1.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "daisyui": "^5.0.12",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^4.1.1",
+    "typescript": "^5"
+  }
+}
