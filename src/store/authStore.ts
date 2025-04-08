@@ -36,12 +36,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         set({ user, isAuthenticated: true, loading: false });
+        console.log(user);
       } else {
         set({ user: null, isAuthenticated: false, loading: false });
       }
     });
 
-    // Return unsubscribe function to be called on cleanup
     return () => unsubscribe();
   },
 

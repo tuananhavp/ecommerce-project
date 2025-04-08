@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SignUp from "./components/signup/SignUp";
 import SignIn from "./components/signin/SignIn";
 import { useAuthStore } from "@/store/authStore";
@@ -7,16 +7,23 @@ import Loading from "@/components/Loading";
 import { useRouter } from "next/navigation";
 
 const AuthPage = () => {
-  const user = localStorage.getItem("user") !== null ? localStorage.getItem("user") : null;
-  const { loading } = useAuthStore((state) => state);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasStoredUser, setHasStoredUser] = useState(false);
+  const { loading, user } = useAuthStore();
   const router = useRouter();
+
   useEffect(() => {
-    if (loading && user) {
+    const storedUser = localStorage.getItem("user");
+    setHasStoredUser(!!storedUser);
+    setIsLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (!loading && user) {
       router.push("/");
     }
-  }, [loading, user, router]);
+  }, [user, router, loading]);
 
-  if (loading && user) {
+  if (!isLoaded || loading || hasStoredUser) {
     return (
       <div className="min-h-lvh flex justify-center items-">
         <Loading />

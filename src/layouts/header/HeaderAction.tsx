@@ -6,21 +6,24 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const HeaderAction = () => {
-  const { user, logout } = useAuthStore((state) => state);
+  const { user, logout, initialize } = useAuthStore((state) => state);
   const router = useRouter();
   const handleLogout = async () => {
     await logout();
     router.push("/login");
   };
 
-  console.log(user);
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
   return (
     <div className="flex gap-5 px-10 pt-3 ">
       <div className="flex gap-5 w-6/7">
         <Link className="flex items-center gap-2" href={"/"}>
-          <Image src={logo} className="size-10" alt="" />
+          <Image src={logo} className="w-10 h-auto" alt="" />
           <span className="font-bold md:text-2xl text-sm ">JinStore</span>
         </Link>
 
