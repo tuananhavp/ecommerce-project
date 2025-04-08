@@ -1,10 +1,21 @@
+"use client";
 import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import logo from "./../../assets/logo.png";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
 
 const HeaderAction = () => {
+  const { user, logout } = useAuthStore((state) => state);
+  const router = useRouter();
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
+  console.log(user);
   return (
     <div className="flex gap-5 px-10 pt-3 ">
       <div className="flex gap-5 w-6/7">
@@ -35,7 +46,32 @@ const HeaderAction = () => {
         <IoHeartOutline className="md:size-8 size-4 hover:opacity-60" />
         <IoCartOutline className="md:size-8 size-4 hover:opacity-60" />
         <div>
-          <CgProfile className="md:size-8 size-4 hover:opacity-60" />
+          <details className="dropdown">
+            <summary className="btn m-1">
+              <CgProfile className="md:size-8 size-4 hover:opacity-60" />
+            </summary>
+            <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-32 p-2  text-xs shadow-md">
+              {user ? (
+                <>
+                  <li>
+                    <button onClick={() => handleLogout()}>Log Out</button>
+                  </li>
+                  <li>
+                    <a>Check Out</a>
+                  </li>
+                  <li>
+                    <a>Order Tracking</a>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href={"/login"}>Sign in</Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </details>
         </div>
       </div>
 

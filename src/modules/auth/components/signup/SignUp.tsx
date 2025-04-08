@@ -1,22 +1,51 @@
 "use client";
 import Checkbox from "@/components/Checkbox";
 import InputField from "@/components/InputField";
+import { useAuthStore } from "@/store/authStore";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-interface AccountProps {
-  name: string;
-  email: string;
-  password: string;
-  role: "customer" | "admin";
-}
+const signUpSchema = z.object({
+  name: z.string().min(1, "Username is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+  role: z.enum(["customer", "admin"], {
+    errorMap: () => ({ message: "Please select a role" }),
+  }),
+});
+type AccountValues = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
-  const { handleSubmit, register } = useForm<AccountProps>();
-  const onSubmit = (data: AccountProps) => console.log(data);
+  const { signup, error, loading, user } = useAuthStore((state) => state);
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+  } = useForm<AccountValues>({
+    resolver: zodResolver(signUpSchema),
+  });
+  const onSubmit = async (data: AccountValues) => {
+    try {
+      await signup(data.name, data.email, data.password, data.role);
+      alert("Account created successfully. Please log in.");
+      window.location.reload();
+      console.log(user, loading);
+    } catch (error) {
+      console.error("Error during sign-in:", error);
+    }
+  };
+
   return (
     <>
-      <input type="radio" name="my_tabs_3" className="tab" aria-label="Register" />
+      <input
+        type="radio"
+        name="my_tabs_3"
+        className="tab text-xl font-bold text-heading-primary"
+        aria-label="Register"
+      />
       <div className="tab-content bg-base-100 border-base-300 p-6 shadow-md">
         <form className="" onSubmit={handleSubmit(onSubmit)}>
           <fieldset className="fieldset w-full bg-white border border-base-300 p-4 rounded-box">
@@ -25,9 +54,10 @@ const SignUp = () => {
               title="Username"
               type="text"
               placeholder="Username"
-              inputClassName="input w-full"
+              inputClassName="input w-full "
               register={register}
             />
+            {errors.name && <p className="text-red-500">{errors.name.message}</p>}
             <InputField
               name="email"
               title="Email"
@@ -36,6 +66,7 @@ const SignUp = () => {
               inputClassName="input w-full"
               register={register}
             />
+            {errors.email && <p className="text-red-500">{errors.email.message}</p>}
             <InputField
               name="password"
               title="Password"
@@ -44,14 +75,42 @@ const SignUp = () => {
               inputClassName="input w-full"
               register={register}
             />
+            {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+            <div className="mt-4">
+              <Checkbox
+                name="role"
+                title="I am a customer"
+                type="radio"
+                inputClassName="radio"
+                value={"customer"}
+                register={register}
+              />
+              <Checkbox
+                name="role"
+                title="I am a vendor"
+                type="radio"
+                inputClassName="radio"
+                value={"admin"}
+                register={register}
+              />
+            </div>
+            {errors.role && <p className="text-red-500">{errors.role.message}</p>}
+            {error && <p className="text-red-500">{error}</p>}
 
-            <Checkbox name="role" title="I am a customer" register={register} />
-            <Checkbox name="role" title="I am a vendor" register={register} />
-            <button type="submit" className="btn btn-neutral bg-purple-primary">
-              Login
+            <button disabled={isSubmitting} type="submit" className="btn btn-neutral bg-purple-primary mt-4">
+              {isSubmitting ? <span className="loading loading-dots loading-sm"></span> : "Register"}
             </button>
           </fieldset>
         </form>
+        <div className="flex justify-center items-center text-xs">
+          <p className=" text-text-primary mt-4  text-center max-w-2xs">
+            Your personal data helps enhance your website experience, manage your account access, and fulfill the
+            purposes in{" "}
+            <Link href={"/"} className="text-[#1D4ED8] hover:text-blue-400">
+              our privacy policy
+            </Link>
+          </p>
+        </div>
       </div>
     </>
   );

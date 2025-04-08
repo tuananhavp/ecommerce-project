@@ -5,14 +5,24 @@ interface CheckboxProps<T extends FieldValues> extends React.InputHTMLAttributes
   name: Path<T>;
   title: string;
   labelClassName?: string;
+  inputClassName?: string;
   register: UseFormRegister<T>;
 }
 
-const Checkbox = <T extends FieldValues>({ name, title, labelClassName, register }: CheckboxProps<T>) => {
+const Checkbox = <T extends FieldValues>({
+  type = "checkbox",
+  name,
+  title,
+  checked,
+  value,
+  inputClassName = "checkbox",
+  labelClassName,
+  register,
+}: CheckboxProps<T>) => {
   return (
     <>
       <label className={`fieldset-label ${labelClassName}`}>
-        <input type="checkbox" className="checkbox" {...register(name, { required: true })} />
+        <input type={type} className={` ${inputClassName}`} value={value} checked={checked} {...register(name)} />
         {title}
       </label>
     </>

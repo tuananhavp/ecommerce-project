@@ -21,12 +21,7 @@ const InputField = <T extends FieldValues>({
   return (
     <>
       <label className={`fieldset-label ${labelClassName}`}>{title}</label>
-      <input
-        {...register(name, { required: true })}
-        type={type}
-        className={`input ${inputClassName}`}
-        placeholder={placeholder}
-      />
+      <input {...register(name)} type={type} className={`input ${inputClassName}`} placeholder={placeholder} />
     </>
   );
 };
