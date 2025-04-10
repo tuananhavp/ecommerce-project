@@ -1,10 +1,10 @@
 import PageLayout from "@/layouts/PageLayout";
-import HomePageModule from "@/modules/homepage";
+import Home from "@/modules/HomePage";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <PageLayout>
-      <HomePageModule />
+      <Home />
     </PageLayout>
   );
 }

@@ -1,7 +1,6 @@
 // useAuthStore.ts
 import { create } from "zustand";
 import {
-  User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -9,22 +8,7 @@ import {
 } from "firebase/auth";
 import { collection, getDoc, doc, setDoc, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
-
-interface AuthState {
-  user: User | UserProfile | null;
-  loading: boolean;
-  error: string | null;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string, role: "customer" | "admin") => Promise<void>;
-  logout: () => Promise<void>;
-  initialize: () => void;
-}
-interface UserProfile {
-  username: string;
-  email: string;
-  role: "customer" | "admin";
-}
+import { AuthState } from "@/types/auth.types";
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,

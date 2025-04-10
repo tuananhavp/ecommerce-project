@@ -1,9 +1,3 @@
-import inter from "./../assets/inter.png";
-import visa from "./../assets/visa.png";
-import skrill from "./../assets/skrill.png";
-import paypal from "./../assets/paypal.png";
-import klarna from "./../assets/klama.png";
-
 export const footerSections = [
   {
     heading: "Make Money with Us",
@@ -118,4 +112,4 @@ export const footerLegalLinks = [
   },
 ];
 
-export const paymentMethodIcons = [inter, visa, skrill, paypal, klarna];
+export const paymentMethodIcons = ["/inter.png", "/visa.png", "/skrill.png", "/paypal.png", "/klama.png"];

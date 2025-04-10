@@ -12,7 +12,9 @@ const FooterBot = () => {
         </p>
         <div className="flex gap-2 items-center mt-3">
           {paymentMethodIcons.map((icon, index) => {
-            return <Image key={index} className="sm:size-8 size-6 object-contain" src={icon} alt="" />;
+            return (
+              <Image key={index} className="sm:size-8 size-6 object-contain" src={icon} width={32} height={32} alt="" />
+            );
           })}
         </div>
       </div>

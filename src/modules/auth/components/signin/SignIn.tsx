@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -31,7 +31,7 @@ const SignIn = () => {
   const onSubmit = async (data: UserValues) => {
     try {
       await login(data.email, data.password);
-      router.push("/");
+      redirect("/");
     } catch (error) {
       console.error("Error during sign-in:", error);
     }

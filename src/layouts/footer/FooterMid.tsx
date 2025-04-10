@@ -1,7 +1,5 @@
 import { CiMail } from "react-icons/ci";
 import { FiPhone } from "react-icons/fi";
-import google from "./../../assets/google.png";
-import appstore from "./../../assets/appstore.png";
 import { footerSections } from "../../constants/footer";
 import Image from "next/image";
 import Link from "next/link";
@@ -57,7 +55,7 @@ const FooterMid = () => {
         <h1 className="font-bold">Dowload our app</h1>
         <div className="flex items-center gap-2.5 mt-3.5">
           <a href="" target="_blank">
-            <Image src={google} alt="google-chplay" />
+            <Image src={"/google.png"} width={120} height={120} alt="google-chplay" />
           </a>
           <div className="flex flex-col">
             <p className="text-gray-primary text-[10px] inline-block">Dowload App Get</p>
@@ -66,7 +64,7 @@ const FooterMid = () => {
         </div>
         <div className="flex items-center gap-2.5 mt-3.5">
           <a href="" target="_blank">
-            <Image src={appstore} alt="google-chplay" />
+            <Image src={"/appstore.png"} alt="google-chplay" width={120} height={120} />
           </a>
           <div className="flex flex-col">
             <p className="text-gray-primary text-[10px] inline-block">Dowload App Get</p>
