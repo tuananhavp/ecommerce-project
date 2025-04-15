@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+
 import { FieldValues, Path, UseFormRegister } from "react-hook-form";
 interface CheckboxProps<T extends FieldValues> extends React.InputHTMLAttributes<HTMLInputElement> {
   name: Path<T>;

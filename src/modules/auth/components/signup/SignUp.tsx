@@ -1,12 +1,16 @@
 "use client";
+import React from "react";
+
+import Link from "next/link";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
+import { z } from "zod";
+
 import Checkbox from "@/components/Checkbox";
 import InputField from "@/components/InputField";
 import { useAuthStore } from "@/store/authStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 const signUpSchema = z.object({
   name: z.string().min(1, "Username is required"),
@@ -19,7 +23,7 @@ const signUpSchema = z.object({
 type AccountValues = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
-  const { signup, error, loading, user } = useAuthStore((state) => state);
+  const { signup, error } = useAuthStore((state) => state);
   const {
     handleSubmit,
     register,
@@ -30,9 +34,10 @@ const SignUp = () => {
   const onSubmit = async (data: AccountValues) => {
     try {
       await signup(data.name, data.email, data.password, data.role);
-      alert("Account created successfully. Please log in.");
-      window.location.reload();
-      console.log(user, loading);
+      Swal.fire({
+        text: "You created account successfully!!",
+        position: "top-end",
+      });
     } catch (error) {
       console.error("Error during sign-in:", error);
     }
@@ -98,7 +103,7 @@ const SignUp = () => {
             {error && <p className="text-red-500">{error}</p>}
 
             <button disabled={isSubmitting} type="submit" className="btn btn-neutral bg-purple-primary mt-4">
-              {isSubmitting ? <span className="loading loading-dots loading-sm"></span> : "Register"}
+              {isSubmitting ? <span className="isLoading isLoading-dots isLoading-sm"></span> : "Register"}
             </button>
           </fieldset>
         </form>

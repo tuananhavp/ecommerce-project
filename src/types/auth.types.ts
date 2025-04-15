@@ -2,7 +2,7 @@ import { User } from "firebase/auth";
 
 export interface AuthState {
   user: User | UserProfile | null;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;

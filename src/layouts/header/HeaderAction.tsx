@@ -1,11 +1,14 @@
 "use client";
-import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
-import { CgProfile } from "react-icons/cg";
-import logo from "./../../../public/logo.png";
-import Link from "next/link";
 import Image from "next/image";
-import { useAuthStore } from "@/store/authStore";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { CgProfile } from "react-icons/cg";
+import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
+
+import { useAuthStore } from "@/store/authStore";
+
+import logo from "./../../../public/logo.png";
 
 const HeaderAction = () => {
   const userDropdown = [

@@ -1,5 +1,6 @@
-import Product from "@/modules/ProductDetail";
 import React from "react";
+
+import Product from "@/modules/app/ProductDetail";
 
 const page = () => {
   return (

@@ -1,18 +1,9 @@
-import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 
-interface ProductCardProps {
-  id: string;
-  name: string;
-  description: string;
-  oldPrice: number;
-  newPrice: number;
-  stockQuantity: number;
-  category: string;
-  trending: boolean;
-  imgUrl: string;
-}
+import Image from "next/image";
+import Link from "next/link";
+
+import { ProductCardProps } from "@/types/product.types";
 
 const ProductCard = ({
   id,
@@ -28,7 +19,7 @@ const ProductCard = ({
     <div className="card bg-base-100 shadow-sm flex flex-col justify-center items-center hover:shadow-lg relative">
       <Link href={`/product/${id}`}>
         <figure>
-          <Image src={imgUrl} alt={name} className="object-cover" width={177} height={177} />
+          <Image src={imgUrl[0]} alt={name} className="object-cover" width={177} height={177} />
         </figure>
       </Link>
 
@@ -58,9 +49,11 @@ const ProductCard = ({
           <button className="btn btn-primary w-full bg-purple-primary">Add to Cart</button>
         </div>
       </div>
-      <div className="rounded-full size-10 text-xs bg-red-600 absolute inset-1.5 flex items-center justify-center text-white animate-wiggle ease-in">
-        {trending && `New`}
-      </div>
+      {trending && (
+        <div className="rounded-full size-10 text-xs bg-red-600 absolute inset-1.5 flex items-center justify-center text-white animate-wiggle ease-in">
+          New
+        </div>
+      )}
     </div>
   );
 };

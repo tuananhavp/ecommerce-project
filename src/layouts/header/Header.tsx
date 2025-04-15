@@ -1,10 +1,12 @@
 "use client";
-import Countdown from "./Countdown";
-import HeaderOption from "./HeaderOption";
-import HeaderAction from "./HeaderAction";
-import Navigation from "./Navigation";
 import { useEffect } from "react";
+
 import { useAuthStore } from "@/store/authStore";
+
+import Countdown from "./Countdown";
+import HeaderAction from "./HeaderAction";
+import HeaderOption from "./HeaderOption";
+import Navigation from "./Navigation";
 
 const Header = () => {
   const { initialize } = useAuthStore();

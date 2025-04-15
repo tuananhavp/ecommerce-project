@@ -1,13 +1,16 @@
 "use client";
-import Checkbox from "@/components/Checkbox";
-import InputField from "@/components/InputField";
-import Link from "next/link";
 import React from "react";
+
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+
+import Checkbox from "@/components/Checkbox";
+import InputField from "@/components/InputField";
 import { useAuthStore } from "@/store/authStore";
-import { redirect, useRouter } from "next/navigation";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,7 +20,6 @@ const signInSchema = z.object({
 type UserValues = z.infer<typeof signInSchema>;
 
 const SignIn = () => {
-  const router = useRouter();
   const { login, error } = useAuthStore();
   const {
     handleSubmit,

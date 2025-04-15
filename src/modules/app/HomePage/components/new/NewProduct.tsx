@@ -1,9 +1,12 @@
+import React, { useEffect } from "react";
+
+import Link from "next/link";
+
+import { FaArrowRight } from "react-icons/fa6";
+
 import Loading from "@/components/Loading";
 import ProductCard from "@/components/ProductCard";
 import { useProductStore } from "@/store/productStore";
-import Link from "next/link";
-import React, { useEffect } from "react";
-import { FaArrowRight } from "react-icons/fa6";
 
 const NewProduct = () => {
   const { getTrendingProduct, products, isLoading } = useProductStore();
@@ -51,7 +54,7 @@ const NewProduct = () => {
                   stockQuantity={product.stockQuantity}
                   category={product.category}
                   trending={product.trending}
-                  imgUrl={product.imgUrl[0]}
+                  imgUrl={product.imgUrl}
                 />
               );
             })}

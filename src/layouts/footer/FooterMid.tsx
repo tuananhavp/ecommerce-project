@@ -1,8 +1,10 @@
-import { CiMail } from "react-icons/ci";
-import { FiPhone } from "react-icons/fi";
-import { footerSections } from "../../constants/footer";
 import Image from "next/image";
 import Link from "next/link";
+
+import { CiMail } from "react-icons/ci";
+import { FiPhone } from "react-icons/fi";
+
+import { footerSections } from "../../constants/footer";
 
 const FooterMid = () => {
   return (

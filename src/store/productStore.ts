@@ -1,28 +1,9 @@
-import { db } from "@/firebase/firebase";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { create } from "zustand";
+import { shallow } from "zustand/shallow";
 
-interface ProductState {
-  products: ProductCardProps[] | null;
-  product: ProductCardProps | null;
-  isLoading: boolean;
-  error: string | null;
-  getTrendingProduct: () => void;
-  getAllProduct: () => void;
-  getAProduct: (productId: string) => void;
-}
-
-interface ProductCardProps {
-  id: string;
-  name: string;
-  description: string;
-  oldPrice: number;
-  newPrice: number;
-  stockQuantity: number;
-  category: string;
-  trending: boolean;
-  imgUrl: string;
-}
+import { db } from "@/firebase/firebase";
+import { ProductCardProps, ProductState } from "@/types/product.types";
 
 export const useProductStore = create<ProductState>((set) => ({
   products: null,
@@ -69,7 +50,8 @@ export const useProductStore = create<ProductState>((set) => ({
   },
   getAProduct: async (productId: string) => {
     try {
-      const productRef = doc(db, "product", productId); // 'products' is your collection name
+      set({ isLoading: true });
+      const productRef = doc(db, "product", productId);
       const docSnap = await getDoc(productRef);
       if (docSnap.exists()) {
         set({
@@ -86,4 +68,6 @@ export const useProductStore = create<ProductState>((set) => ({
       console.log(error);
     }
   },
+
+  shallow,
 }));

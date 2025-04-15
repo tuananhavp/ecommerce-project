@@ -1,10 +1,14 @@
 import React from "react";
-import { capitalizeFirstLetter } from "@/helpers";
-import categoryBanner from "./../../../../../public/category-banner.png";
+
 import Image from "next/image";
-import { FaArrowRight } from "react-icons/fa6";
 import Link from "next/link";
+
+import { FaArrowRight } from "react-icons/fa6";
+
+import { capitalizeFirstLetter } from "@/helpers";
+
 import { categories } from "../../constants";
+
 import CategoryCard from "./components/CategoryCard";
 
 const Category = () => {
@@ -33,7 +37,13 @@ const Category = () => {
           })}
         </div>
         <div className="w-full h-fit relative mt-16 lg:block hidden ">
-          <Image src={categoryBanner} alt={"category banner"} className="w-full h-auto object-contain" />
+          <Image
+            src="/category-banner.png"
+            alt={"Banner Category Image"}
+            width={1000}
+            height={100}
+            className="w-full h-auto object-contain "
+          />
           <div className="absolute top-3 left-4">
             <h3 className="text-[#EA580C] xl:text-2xl text-sm font-bold">
               In store or online your health & safety is our top priority

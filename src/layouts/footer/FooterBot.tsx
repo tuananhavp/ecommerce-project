@@ -1,6 +1,7 @@
-import Link from "next/link";
-import { footerLegalLinks, paymentMethodIcons } from "../../constants/footer";
 import Image from "next/image";
+import Link from "next/link";
+
+import { footerLegalLinks, paymentMethodIcons } from "../../constants/footer";
 
 const FooterBot = () => {
   return (
