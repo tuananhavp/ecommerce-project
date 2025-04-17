@@ -1,6 +1,8 @@
-import { headerSubLinks, localeSettings } from "../../constants/header";
 import Link from "next/link";
+
 import Dropdown from "@/components/Dropdown";
+
+import { headerSubLinks, localeSettings } from "../../constants/header";
 
 const HeaderOption = () => {
   return (

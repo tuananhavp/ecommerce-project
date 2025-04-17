@@ -10,8 +10,10 @@ import { IoMdShare } from "react-icons/io";
 import { IoGitCompareSharp } from "react-icons/io5";
 
 import { ProductCardProps } from "@/types/product.types";
+import clsx from "clsx";
 
 const ProductOption = ({ product }: { product: ProductCardProps }) => {
+  const { name, description, oldPrice, newPrice } = product;
   const initialQuantity = 1,
     maxQuantity = 10,
     rating = 3;
@@ -38,7 +40,7 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
 
   return (
     <div className="flex flex-col gap-8">
-      <h2 className="text-text-primary text-3xl font-bold">{product.name}</h2>
+      <h2 className="text-text-primary text-3xl font-bold">{name}</h2>
 
       <div className="rating rating-xs">
         {Array.from({ length: 5 }).map((_, index) => {
@@ -62,11 +64,20 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
           );
         })}
       </div>
-      <span className="text-sm text-gray-secondary mt-2.5 ">{product.description}</span>
+      <span className="text-sm text-gray-secondary mt-2.5 ">{description}</span>
 
       <div className="flex items-center gap-2 ">
-        <span className="text-red-primary font-bold lg:text-3xl sm:text-sm text-xs">${product.newPrice}</span>
-        <span className="text-text-primary lg:text-xl sm: text-xs text-[10px] line-through">${product.oldPrice}</span>
+        <span className={clsx("text-red-primary font-bold lg:text-3xl sm:text-sm text-xs", newPrice == 0 && "hidden")}>
+          ${newPrice}
+        </span>
+        <span
+          className={clsx("text-text-primary sm:text-xs text-[10px]", {
+            "text-red-primary font-bold lg:text-3xl sm:text-sm text-xs": newPrice == 0,
+            "line-through lg:text-xl": newPrice !== 0,
+          })}
+        >
+          ${oldPrice}
+        </span>
       </div>
       <div className="flex items-center gap-5 cursor-not-allowed">
         <div className="p-2 border-2 border-gray-300 rounded-md">

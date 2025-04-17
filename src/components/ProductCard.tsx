@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ProductCardProps } from "@/types/product.types";
+import clsx from "clsx";
 
 const ProductCard = ({
   id,
@@ -15,6 +16,7 @@ const ProductCard = ({
   trending,
   imgUrl,
 }: ProductCardProps) => {
+  console.log(imgUrl);
   return (
     <div className="card bg-base-100 shadow-sm flex flex-col justify-center items-center hover:shadow-lg relative">
       <Link href={`/product/${id}`}>
@@ -38,8 +40,17 @@ const ProductCard = ({
           )}
         </Link>
         <div className="flex items-center gap-2">
-          <span className="text-red-primary font-bold lg:text-xl sm:text-sm text-xs">${newPrice}</span>
-          <span className="text-text-primary lg:text-base sm: text-xs text-[10px] line-through">${oldPrice}</span>
+          <span className={clsx("text-red-primary font-bold lg:text-xl sm:text-sm text-xs", newPrice == 0 && "hidden")}>
+            ${newPrice}
+          </span>
+          <span
+            className={clsx("text-text-primary lg:text-base sm: text-xs text-[10px]", {
+              "text-red-primary font-bold lg:text-xl sm:text-sm text-xs": newPrice == 0,
+              "line-through": newPrice !== 0,
+            })}
+          >
+            ${oldPrice}
+          </span>
         </div>
         <span className="text-sm font-bold text-green-600">IN STOCK</span>
         <span className="text-gray-secondary text-xs">

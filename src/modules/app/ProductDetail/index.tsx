@@ -11,6 +11,7 @@ import ProductDescription from "./components/ProductDescription";
 import ProductGallery from "./components/ProductGallery";
 import ProductOption from "./components/ProductOption";
 import RelatedProduct from "./components/RelatedProduct";
+import NotFound from "@/components/NotFound";
 
 const Product = () => {
   const { product, products, getAProduct, getAllProduct, isLoading } = useProductStore();
@@ -43,7 +44,9 @@ const Product = () => {
             <RelatedProduct products={products} product={product} isLoading={isLoading} />
           </>
         ) : (
-          <div>Product not found</div>
+          <div>
+            <NotFound title="can not find this product" />
+          </div>
         )}
       </div>
     </section>

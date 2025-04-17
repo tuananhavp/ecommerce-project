@@ -1,6 +1,8 @@
-import { RiArrowDropDownLine } from "react-icons/ri";
-import { headerNavLinks } from "../../constants/header";
 import Link from "next/link";
+
+import { RiArrowDropDownLine } from "react-icons/ri";
+
+import { headerNavLinks } from "../../constants/header";
 
 const Navigation = () => {
   return (

@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";
 
@@ -68,6 +68,105 @@ export const useProductStore = create<ProductState>((set) => ({
       console.log(error);
     }
   },
+  createProduct: async (data) => {
+    try {
+      set({ isLoading: true, error: null });
 
+      // Clean up the data to remove any undefined values
+      const productData = {
+        name: data.name || "",
+        description: data.description || "",
+        oldPrice: data.oldPrice || 0,
+        newPrice: data.newPrice || 0,
+        stockQuantity: data.stockQuantity || 0,
+        category: data.category || "",
+        trending: data.trending === true, // Convert to boolean explicitly
+        imgUrl: Array.isArray(data.imgUrl) ? data.imgUrl : [],
+        createdAt: new Date().toISOString(),
+      };
+
+      // Log the product data before adding to Firestore to debug
+      console.log("Product data to be added:", productData);
+
+      // Save the product data to Firestore
+      const productRef = collection(db, "product");
+      const newProductDoc = await addDoc(productRef, productData);
+
+      // Get the newly created product
+      const newProductSnapshot = await getDoc(newProductDoc);
+      if (newProductSnapshot.exists()) {
+        const newProduct = {
+          id: newProductSnapshot.id,
+          ...(newProductSnapshot.data() as Omit<ProductCardProps, "id">),
+        };
+
+        // Update the store with the new product
+        set((state) => ({
+          product: newProduct,
+          products: state.products ? [...state.products, newProduct] : state.products,
+          isLoading: false,
+        }));
+
+        return newProduct;
+      } else {
+        throw new Error("Failed to retrieve the newly created product");
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      set({ isLoading: false, error: "Failed to create the product" });
+      throw error;
+    }
+  },
+  deleteProduct: async (productId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      await deleteDoc(doc(db, "product", productId));
+
+      set((state) => ({
+        products: state.products ? state.products.filter((product) => product.id !== productId) : null,
+        isLoading: false,
+      }));
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      set({ isLoading: false, error: "Failed to delete the product" });
+      throw error;
+    }
+  },
+  updateProduct: async (productId: string, data: Partial<Omit<ProductCardProps, "id">>) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      // Update the product in Firestore
+      const productRef = doc(db, "product", productId);
+      await updateDoc(productRef, data);
+
+      // Get the updated product
+      const updatedDocSnap = await getDoc(productRef);
+      if (updatedDocSnap.exists()) {
+        const updatedProduct = {
+          id: updatedDocSnap.id,
+          ...(updatedDocSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        // Update the store with the updated product
+        set((state) => ({
+          product: updatedProduct,
+          products: state.products ? state.products.map((p) => (p.id === productId ? updatedProduct : p)) : null,
+          isLoading: false,
+        }));
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      set({ isLoading: false, error: "Failed to update the product" });
+      throw error;
+    }
+  },
   shallow,
 }));
