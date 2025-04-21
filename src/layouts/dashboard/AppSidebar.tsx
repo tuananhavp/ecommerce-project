@@ -1,16 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
+
 import { TiThMenu } from "react-icons/ti";
 
 import { sidebarNav } from "@/constants/dashboard";
 
 const AppSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isLarge = window.innerWidth >= 1024;
+      setIsLargeScreen(isLarge);
+      if (!isLarge) {
+        setIsOpen(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen flex bg-layout-primary">
-      {/* Sidebar */}
       <div
         className={`sidebar bg-layout-primary overflow-hidden ${
           isOpen ? "w-80" : "w-16"
@@ -62,6 +78,7 @@ const AppSidebar = () => {
             </>
           ) : (
             <div className="flex flex-col items-center pt-16">
+              {/* Mini Sidebar */}
               <div className="avatar mb-6">
                 <div className="ring-primary ring-offset-base-100 w-10 rounded-full ring ring-offset-2">
                   <Image src={"/avatar.png"} alt="Logo" width={50} height={50} />
@@ -84,14 +101,13 @@ const AppSidebar = () => {
             </div>
           )}
 
-          <button onClick={() => setIsOpen(!isOpen)} className={`btn btn-primary absolute right-0 top-5`}>
-            <TiThMenu className="size-6" />
-          </button>
+          {isLargeScreen && (
+            <button onClick={() => setIsOpen(!isOpen)} className="btn btn-primary absolute right-0 top-5">
+              <TiThMenu className="size-6" />
+            </button>
+          )}
         </div>
       </div>
-
-      {/* Main content area */}
-      <div className="flex-1">{/* Your main content goes here */}</div>
     </div>
   );
 };

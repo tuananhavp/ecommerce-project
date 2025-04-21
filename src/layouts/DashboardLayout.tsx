@@ -6,15 +6,13 @@ import AppSidebar from "./dashboard/AppSidebar";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <>
-      <div className="flex bg-layout-primary font-dashboard">
-        <AppSidebar />
-        <div className="flex flex-col flex-grow">
-          <AppHeader></AppHeader>
-          {children}
-        </div>
+    <div className="flex h-screen overflow-hidden bg-layout-primary font-dashboard">
+      <AppSidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <AppHeader />
+        <main className="flex-1 overflow-auto p-4">{children}</main>
       </div>
-    </>
+    </div>
   );
 };
 

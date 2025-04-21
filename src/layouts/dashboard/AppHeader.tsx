@@ -7,22 +7,24 @@ import { LuShoppingCart } from "react-icons/lu";
 
 const AppHeader = () => {
   return (
-    <div className="navbar flex-grow  max-h-20 bg-layout-primary gap-10 px-5">
-      <div className="">
+    <div className="navbar flex flex-wrap items-center justify-between bg-layout-primary gap-3 p-4">
+      <div className="flex items-center">
         <a className="btn btn-ghost text-xl">Overview</a>
       </div>
-      <div className="flex-1/2 outline-none">
-        <label className="input w-full bg-white px-6 py-1.5 border-none shadow-md rounded-2xl focus:outline-none ">
+
+      <div className="flex-1 min-w-[200px] max-w-md">
+        <label className="input w-full bg-white px-6 py-1.5 border-none shadow-md rounded-2xl focus:outline-none flex items-center gap-2">
           <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.3-4.3"></path>
             </g>
           </svg>
-          <input type="search" className="grow px-3" placeholder="Search" />
+          <input type="search" className="grow px-3 bg-transparent outline-none" placeholder="Search" />
         </label>
       </div>
-      <div className="flex-none">
+
+      <div className="flex items-center gap-3 ml-auto">
         <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <div className="indicator">
@@ -40,11 +42,11 @@ const AppHeader = () => {
             </div>
           </div>
         </div>
+
         <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <div className="indicator">
               <LuShoppingCart className="size-5" />
-
               <span className="badge badge-secondary badge-xs indicator-item">8</span>
             </div>
           </div>
@@ -58,10 +60,11 @@ const AppHeader = () => {
             </div>
           </div>
         </div>
+
         <Link href={"/dashboard/products/create-product"}>
-          <button className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg bg-purple-primary text-white ml-3 text-sm rounded-2xl hover:opacity-85">
+          <button className="btn btn-sm bg-purple-primary text-white text-sm rounded-2xl hover:opacity-85">
             <IoAddCircleOutline className="size-5" />
-            Add Product
+            <span className="hidden sm:inline">Add Product</span>
           </button>
         </Link>
       </div>

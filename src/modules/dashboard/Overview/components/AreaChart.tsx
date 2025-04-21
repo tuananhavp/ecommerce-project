@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
   { month: "February", desktop: 305, mobile: 200 },
@@ -29,17 +30,20 @@ export function AreaChartBar() {
   return (
     <Card className="w-full border-0">
       <CardHeader>
-        <CardTitle>Area Chart - Stacked</CardTitle>
-        <CardDescription>Showing total visitors for the last 6 months</CardDescription>
+        <CardTitle className="text-lg md:text-xl">Area Chart - Stacked</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Showing total visitors for the last 6 months</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px] w-full">
+      <CardContent className="px-2 sm:px-4 md:px-6">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[180px] sm:max-h-[220px] md:max-h-[250px] w-full"
+        >
           <AreaChart
             accessibilityLayer
             data={chartData}
             margin={{
-              left: 12,
-              right: 12,
+              left: 8,
+              right: 8,
             }}
           >
             <CartesianGrid vertical={false} />
@@ -47,8 +51,9 @@ export function AreaChartBar() {
               dataKey="month"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              tickMargin={4}
               tickFormatter={(value) => value.slice(0, 3)}
+              fontSize={10}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
             <Area
@@ -71,12 +76,14 @@ export function AreaChartBar() {
         </ChartContainer>
       </CardContent>
       <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+        <div className="flex w-full items-start gap-1 md:gap-2 text-xs sm:text-sm">
+          <div className="grid gap-1 md:gap-2">
+            <div className="flex items-center gap-1 md:gap-2 font-medium leading-none">
+              Trending up by 5.2% this month <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
             </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">January - June 2024</div>
+            <div className="flex items-center gap-1 md:gap-2 leading-none text-muted-foreground text-xs">
+              January - June 2024
+            </div>
           </div>
         </div>
       </CardFooter>

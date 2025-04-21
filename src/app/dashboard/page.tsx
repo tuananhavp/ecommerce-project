@@ -1,5 +1,6 @@
-import Dashboard from "@/modules/dashboard/Overview";
 import React from "react";
+
+import Dashboard from "@/modules/dashboard/Overview";
 
 const AdminDashboard = () => {
   return (

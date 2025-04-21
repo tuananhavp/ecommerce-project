@@ -1,11 +1,16 @@
+"use client";
 import React, { useEffect, useState } from "react";
+
 import Image from "next/image";
+
 import clsx from "clsx";
+import { MdDelete, MdOutlineEdit } from "react-icons/md";
+
 import Loading from "@/components/Loading";
 import { useProductStore } from "@/store/productStore";
 import { ProductCardProps } from "@/types/product.types";
+
 import EditProductForm from "../EditProductForm";
-import { MdDelete, MdOutlineEdit } from "react-icons/md";
 
 const ProductTable = () => {
   const { products, getAllProduct, deleteProduct, isLoading } = useProductStore();
@@ -13,59 +18,35 @@ const ProductTable = () => {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [productToEdit, setProductToEdit] = useState<ProductCardProps | null>(null);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = products?.slice(indexOfFirstItem, indexOfLastItem) || [];
   const totalPages = products ? Math.ceil(products.length / itemsPerPage) : 0;
 
-  // Pagination controls
-  const goToPage = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+  const goToPage = (pageNumber: number) => setCurrentPage(pageNumber);
+  const goToPreviousPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
-  const goToPreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const goToNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  // Create page numbers array for pagination buttons
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
-
-  // Delete modal functions
   const openDeleteModal = (id: string) => {
     setProductToDelete(id);
-    const modal = document.getElementById("delete_modal") as HTMLDialogElement | null;
-    if (modal) {
-      modal.showModal();
-    }
+    (document.getElementById("delete_modal") as HTMLDialogElement)?.showModal();
   };
 
   const closeDeleteModal = () => {
-    const modal = document.getElementById("delete_modal") as HTMLDialogElement | null;
-    if (modal) {
-      modal.close();
-    }
+    (document.getElementById("delete_modal") as HTMLDialogElement)?.close();
     setProductToDelete(null);
   };
 
   const handleDeleteProduct = async () => {
     if (!productToDelete) return;
-
     try {
       setIsDeleting(true);
       await deleteProduct(productToDelete);
-      // Check if we need to adjust current page after deletion
       const remainingItems = (products?.length || 0) - 1;
       const newTotalPages = Math.ceil(remainingItems / itemsPerPage);
       if (currentPage > newTotalPages && newTotalPages > 0) {
@@ -79,20 +60,13 @@ const ProductTable = () => {
     }
   };
 
-  // Edit modal functions
   const openEditModal = (product: ProductCardProps) => {
     setProductToEdit(product);
-    const modal = document.getElementById("edit_modal") as HTMLDialogElement | null;
-    if (modal) {
-      modal.showModal();
-    }
+    (document.getElementById("edit_modal") as HTMLDialogElement)?.showModal();
   };
 
   const closeEditModal = () => {
-    const modal = document.getElementById("edit_modal") as HTMLDialogElement | null;
-    if (modal) {
-      modal.close();
-    }
+    (document.getElementById("edit_modal") as HTMLDialogElement)?.close();
     setProductToEdit(null);
   };
 
@@ -117,9 +91,9 @@ const ProductTable = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto">
-        <table className="table">
+    <div className="flex flex-col gap-6">
+      <div className="overflow-x-auto w-full">
+        <table className="table w-full text-sm sm:text-base">
           <thead>
             <tr>
               <th></th>
@@ -128,45 +102,43 @@ const ProductTable = () => {
               <th>Category</th>
               <th>Quantity</th>
               <th>Trending</th>
-              <th></th>
+              <th className="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentProducts.map((product) => {
               const { category, name, stockQuantity, imgUrl, trending, id } = product;
               return (
-                <tr key={`${id}`}>
-                  <th>
+                <tr key={id}>
+                  <td>
                     <label>
                       <input type="checkbox" className="checkbox" />
                     </label>
-                  </th>
+                  </td>
                   <td>
                     <div className="flex items-center gap-3">
                       <div className="avatar">
-                        <div className="mask mask-squircle h-12 w-12">
-                          <Image src={imgUrl[0]} alt={name} width={48} height={48} />
+                        <div className="mask mask-squircle w-10 h-10">
+                          <Image src={imgUrl[0]} alt={name} width={40} height={40} />
                         </div>
                       </div>
-                      <div>
-                        <span className="">#{id}</span>
-                      </div>
+                      <span className="hidden sm:inline-block">#{id}</span>
                     </div>
                   </td>
-                  <td>{name}</td>
+                  <td className="max-w-xs break-words">{name}</td>
                   <td>
                     <span className={clsx("badge text-white", categoryColorMap[category])}>{category}</span>
                   </td>
                   <td>{stockQuantity}</td>
                   <td>{trending ? "Trending" : "Unpopular"}</td>
-                  <th className="">
-                    <button className="btn btn-success btn-xs mr-1.5" onClick={() => openEditModal(product)}>
-                      <MdOutlineEdit className="size-5" />
+                  <td className="flex justify-end gap-2">
+                    <button className="btn btn-success btn-xs" onClick={() => openEditModal(product)}>
+                      <MdOutlineEdit className="size-4" />
                     </button>
                     <button className="btn btn-warning btn-xs" onClick={() => openDeleteModal(id)}>
-                      <MdDelete className="size-5" />
+                      <MdDelete className="size-4" />
                     </button>
-                  </th>
+                  </td>
                 </tr>
               );
             })}
@@ -178,10 +150,10 @@ const ProductTable = () => {
       <dialog id="delete_modal" className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">Delete Product</h3>
-          <p className="py-4">Are you sure you want to delete this product? This action cannot be undone.</p>
+          <p className="py-4">Are you sure you want to delete this product?</p>
           <div className="modal-action">
             <button className="btn btn-error" onClick={handleDeleteProduct} disabled={isDeleting}>
-              {isDeleting ? <span className="loading loading-spinner loading-xs"></span> : "Delete"}
+              {isDeleting ? <span className="loading loading-spinner loading-xs" /> : "Delete"}
             </button>
             <button className="btn" onClick={closeDeleteModal} disabled={isDeleting}>
               Cancel
@@ -197,47 +169,46 @@ const ProductTable = () => {
         </div>
       </dialog>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-between items-center px-4">
-        <div className="text-sm">
+      {/* Pagination */}
+      <div className="flex flex-col gap-3 md:flex-row justify-between items-center px-2 sm:px-4">
+        <div className="text-sm text-center md:text-left">
           Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, products?.length || 0)} of{" "}
           {products?.length || 0} entries
         </div>
 
         <div className="join">
-          <button className="join-item btn" onClick={goToPreviousPage} disabled={currentPage === 1}>
+          <button className="join-item btn btn-sm" onClick={goToPreviousPage} disabled={currentPage === 1}>
             «
           </button>
-
           {pageNumbers.map((number) => (
             <button
               key={number}
-              className={`join-item btn ${currentPage === number ? "btn-active" : ""}`}
+              className={`join-item btn btn-sm ${currentPage === number ? "btn-active" : ""}`}
               onClick={() => goToPage(number)}
             >
               {number}
             </button>
           ))}
-
-          <button className="join-item btn" onClick={goToNextPage} disabled={currentPage === totalPages}>
+          <button className="join-item btn btn-sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
             »
           </button>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm w-52">Items per page:</span>
+          <span className="text-sm">Items per page:</span>
           <select
-            className="select select-bordered select-sm"
+            className="select select-sm select-bordered"
             value={itemsPerPage}
             onChange={(e) => {
               setItemsPerPage(Number(e.target.value));
-              setCurrentPage(1); // Reset to first page when changing items per page
+              setCurrentPage(1);
             }}
           >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
+            {[5, 10, 20, 50].map((count) => (
+              <option key={count} value={count}>
+                {count}
+              </option>
+            ))}
           </select>
         </div>
       </div>

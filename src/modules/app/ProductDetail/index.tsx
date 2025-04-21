@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Loading from "@/components/Loading";
+import NotFound from "@/components/NotFound";
 import { useProductStore } from "@/store/productStore";
 
 import ProductDescription from "./components/ProductDescription";
 import ProductGallery from "./components/ProductGallery";
 import ProductOption from "./components/ProductOption";
 import RelatedProduct from "./components/RelatedProduct";
-import NotFound from "@/components/NotFound";
 
 const Product = () => {
   const { product, products, getAProduct, getAllProduct, isLoading } = useProductStore();
@@ -27,8 +27,8 @@ const Product = () => {
   }, [fetchProduct]);
 
   return (
-    <section className="mt-7 flex items-center justify-center">
-      <div className="w-10/12 min-h-dvh">
+    <section className="mt-4 md:mt-7 flex items-center justify-center">
+      <div className="w-11/12 md:w-10/12 min-h-dvh">
         {isLoading ? (
           <div className="min-h-lvh flex justify-center items-center">
             <Loading />
@@ -36,7 +36,7 @@ const Product = () => {
         ) : product ? (
           <>
             <Breadcrumbs product={product} />
-            <div className="grid grid-cols-2 mt-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 md:mt-10">
               <ProductGallery product={product} />
               <ProductOption product={product} />
             </div>

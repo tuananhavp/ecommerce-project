@@ -1,18 +1,18 @@
 "use client";
 import React, { useState } from "react";
 
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 import { z } from "zod";
 
 import InputField from "@/components/InputField";
 import SelectForm from "@/components/SelectForm";
 import { useProductStore } from "@/store/productStore";
 import { productSchema } from "@/types/product.types";
-import Swal from "sweetalert2";
 
 type ProductValues = z.infer<typeof productSchema>;
 

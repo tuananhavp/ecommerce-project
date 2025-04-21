@@ -34,12 +34,14 @@ const ProductDescription = () => {
     <div className="mt-10">
       <div className="tabs tabs-lift">
         <input type="radio" name="my_tabs_3" className="tab" aria-label="Description" defaultChecked />
-        <div className="tab-content bg-base-100 border-base-300 p-6 text-text-primary text-justify">
+        <div className="tab-content bg-base-100 border-base-300 p-6 text-text-primary text-justify md:text-base text-xs">
           {productDesc.desc}
         </div>
 
         <input type="radio" name="my_tabs_3" className="tab" aria-label={`Review[${productDesc.review.length}]`} />
-        <div className="tab-content bg-base-100 border-base-300 p-6">Review{`[${productDesc.review.length}]`}</div>
+        <div className="tab-content bg-base-100 border-base-300 p-6 md:text-base text-xs">
+          Review{`[${productDesc.review.length}]`}
+        </div>
       </div>
     </div>
   );

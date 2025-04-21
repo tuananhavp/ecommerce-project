@@ -1,5 +1,7 @@
 import React from "react";
+
 import { Poppins } from "next/font/google";
+
 import DashboardLayout from "@/layouts/DashboardLayout";
 
 const poppins = Poppins({

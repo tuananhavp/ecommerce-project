@@ -1,8 +1,10 @@
 import React from "react";
 
-const Loading = () => {
+import clsx from "clsx";
+
+const Loading = (className: { className?: string }) => {
   return (
-    <div className="flex justify-center items-center h-full">
+    <div className={clsx("flex justify-center items-center", className)}>
       <span className="loading loading-bars loading-xl"></span>
     </div>
   );

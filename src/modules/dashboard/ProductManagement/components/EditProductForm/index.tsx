@@ -1,8 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 import InputField from "@/components/InputField";
 import SelectForm from "@/components/SelectForm";
 import { useProductStore } from "@/store/productStore";
@@ -24,7 +26,6 @@ const EditProductForm = ({ product, onClose }: EditProductFormProps) => {
     handleSubmit,
     register,
     formState: { errors },
-    setValue,
   } = useForm({
     mode: "onChange",
     resolver: zodResolver(productSchema),
