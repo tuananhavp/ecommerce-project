@@ -5,7 +5,9 @@ import Link from "next/link";
 
 import clsx from "clsx";
 import { FaShoppingCart } from "react-icons/fa";
+import Swal from "sweetalert2";
 
+import useCartStore from "@/store/cartStore";
 import { ProductCardProps } from "@/types/product.types";
 
 const StandoutProductCard = ({
@@ -18,6 +20,26 @@ const StandoutProductCard = ({
   trending,
   imgUrl,
 }: ProductCardProps) => {
+  const { addItem } = useCartStore();
+
+  const handleAddToCart = () => {
+    const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+    addItem({
+      productID: id,
+      name: name,
+      price: price ?? 0,
+      imgUrl: imgUrl[0],
+    });
+
+    // Optional: Show a toast notification
+    Swal.fire({
+      title: "Added to Cart",
+      text: `${name} has been added to your cart.`,
+      icon: "success",
+      draggable: true,
+    });
+  };
   const rating = 3;
   return (
     <div className="card bg-base-100 shadow-sm flex flex-col justify-center items-center hover:shadow-lg relative h-full w-full border-4 border-[#DC2626] rounded-lg gap-5">
@@ -81,7 +103,7 @@ const StandoutProductCard = ({
           </span>
         </div>
         <div className="card-actions ">
-          <button className="btn w-full bg-[#16A34A] text-white">
+          <button className="btn w-full bg-[#16A34A] text-white" onClick={handleAddToCart}>
             <FaShoppingCart />
             Add to Cart
           </button>

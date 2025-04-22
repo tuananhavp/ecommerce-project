@@ -1,6 +1,6 @@
 import PageLayout from "@/layouts/PageLayout";
 
-export default function ProductLayout({
+export default function UserLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

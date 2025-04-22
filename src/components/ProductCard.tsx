@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import clsx from "clsx";
+import Swal from "sweetalert2";
 
+import useCartStore from "@/store/cartStore";
 import { ProductCardProps } from "@/types/product.types";
 
 const ProductCard = ({
@@ -17,6 +19,27 @@ const ProductCard = ({
   trending,
   imgUrl,
 }: ProductCardProps) => {
+  const { addItem } = useCartStore();
+
+  const handleAddToCart = () => {
+    const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+    addItem({
+      productID: id,
+      name: name,
+      price: price ?? 0,
+      imgUrl: imgUrl[0],
+    });
+
+    // Optional: Show a toast notification
+    Swal.fire({
+      title: "Added to Cart",
+      text: `${name} has been added to your cart.`,
+      icon: "success",
+      draggable: true,
+    });
+  };
+
   return (
     <div className="card bg-base-100 shadow-sm flex flex-col h-full hover:shadow-lg relative">
       <Link href={`/product/${id}`} className="flex justify-center">
@@ -28,11 +51,6 @@ const ProductCard = ({
       <div className="card-body flex flex-col flex-1">
         <Link href={`/product/${id}`} className="flex-1 flex flex-col">
           <div className="min-h-14">
-            {/* {name.length <= 20 ? (
-              <span className="card-title lg:text-base sm:text-xs text-[10px]">{name}</span>
-            ) : (
-              <span className="card-title lg:text-base sm:text-xs text-[10px]">{name.slice(0, 20)}...</span>
-            )} */}
             <span className="card-title lg:text-base sm:text-xs text-[10px]">{name}</span>
           </div>
 
@@ -64,11 +82,13 @@ const ProductCard = ({
 
           <span className="text-sm font-bold text-green-600">IN STOCK</span>
           <span className="text-gray-secondary text-xs block mb-2">
-            Avalible only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
+            Available only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
           </span>
 
           <div className="card-actions">
-            <button className="btn btn-primary w-full bg-purple-primary">Add to Cart</button>
+            <button className="btn btn-primary w-full bg-purple-primary" onClick={handleAddToCart}>
+              Add to Cart
+            </button>
           </div>
         </div>
       </div>

@@ -10,7 +10,10 @@ export interface ProductCardProps {
   category: string;
   trending: boolean;
   imgUrl: string[];
-  createdAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  rating?: number;
+  reviewsCount?: number;
 }
 
 export interface ProductState {

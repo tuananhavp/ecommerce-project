@@ -1,12 +1,12 @@
 import React from "react";
 
-import Product from "@/modules/app/ProductDetail";
+import CartPage from "@/modules/app/Cart";
 
 const page = () => {
   return (
-    <div>
-      <Product />
-    </div>
+    <>
+      <CartPage />
+    </>
   );
 };
 

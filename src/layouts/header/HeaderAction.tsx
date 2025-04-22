@@ -1,4 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -7,17 +9,24 @@ import { CgProfile } from "react-icons/cg";
 import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
 
 import { useAuthStore } from "@/store/authStore";
-
-import logo from "./../../../public/logo.png";
+import useCartStore from "@/store/cartStore";
 
 const HeaderAction = () => {
   const userDropdown = [
-    { name: "Check out", link: "/checkout" },
+    { name: "Check Out", link: "/checkout" },
     { name: "Order Tracking", link: "/order-tracking" },
   ];
 
   const { user, logout } = useAuthStore((state) => state);
+  const totalItems = useCartStore((state) => state.getTotalItems());
   const router = useRouter();
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     router.push("/login");
@@ -27,7 +36,7 @@ const HeaderAction = () => {
     <div className="flex gap-5 px-10 pt-3 ">
       <div className="flex gap-5 w-6/7">
         <Link className="flex items-center gap-2" href={"/"}>
-          <Image src={logo} className="w-10 h-auto" alt="" />
+          <Image src="/logo.png" className="w-10 h-auto" alt="Jin Store Logo" width={45} height={40} />
           <span className="font-bold md:text-2xl text-sm ">JinStore</span>
         </Link>
 
@@ -50,8 +59,18 @@ const HeaderAction = () => {
       </div>
 
       <div className="sm:flex hidden items-center gap-3 px-5">
-        <IoHeartOutline className="md:size-8 size-4 hover:opacity-60" />
-        <IoCartOutline className="md:size-8 size-4 hover:opacity-60" />
+        <Link href={"/favourite"}>
+          <IoHeartOutline className="md:size-8 size-4 hover:opacity-60" />
+        </Link>
+        <Link href={"/cart"} className="relative">
+          <IoCartOutline className="md:size-8 size-4 hover:opacity-60" />
+          {/* Only show cart badge if component is mounted (client-side) */}
+          {isMounted && totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs flex items-center justify-center min-w-5 h-5 px-1">
+              {totalItems}
+            </span>
+          )}
+        </Link>
         <div>
           {
             <>

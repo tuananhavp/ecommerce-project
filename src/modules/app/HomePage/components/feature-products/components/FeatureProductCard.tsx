@@ -5,10 +5,30 @@ import Link from "next/link";
 
 import clsx from "clsx";
 import { FiPlusCircle } from "react-icons/fi";
+import Swal from "sweetalert2";
 
+import useCartStore from "@/store/cartStore";
 import { ProductCardProps } from "@/types/product.types";
 
 const FeatureProductCard = ({ id, name, oldPrice, newPrice, stockQuantity, trending, imgUrl }: ProductCardProps) => {
+  const { addItem } = useCartStore();
+
+  const handleAddToCart = () => {
+    const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+    addItem({
+      productID: id,
+      name: name,
+      price: price ?? 0,
+      imgUrl: imgUrl[0],
+    });
+    Swal.fire({
+      title: "Added to Cart",
+      text: `${name} has been added to your cart.`,
+      icon: "success",
+      draggable: true,
+    });
+  };
   const rating = 3;
   return (
     <div className="card lg:card-side bg-base-100 shadow-sm hover:shadow-lg">
@@ -74,7 +94,7 @@ const FeatureProductCard = ({ id, name, oldPrice, newPrice, stockQuantity, trend
           Avalible only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
         </span>
         <div className="card-actions ">
-          <button className="btn w-full rounded-2xl border-2 border-[#634C9F] text-[#634C9F]">
+          <button className="btn w-full rounded-2xl border-2 border-[#634C9F] text-[#634C9F]" onClick={handleAddToCart}>
             Add to Cart <FiPlusCircle className="size-4" />
           </button>
         </div>
