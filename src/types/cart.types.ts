@@ -4,14 +4,18 @@ export type CartItem = {
   price: number;
   imgUrl: string;
   quantity: number;
+  cart?: CartItem[];
 };
 
 export interface CartState {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (productID: string) => void;
-  updateQuantity: (productID: string, quantity: number) => void;
-  clearCart: () => void;
+  isLoading: boolean;
+  error: string | null;
+
+  fetchCart: () => Promise<void>;
+  addToCart: (item: CartItem) => Promise<void>;
+  removeFromCart: (productID: string) => Promise<void>;
+  updateCartItemQuantity: (productID: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   getTotalItems: () => number;
-  getTotalPrice: () => number;
 }

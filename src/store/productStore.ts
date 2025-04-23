@@ -72,7 +72,6 @@ export const useProductStore = create<ProductState>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Clean up the data to remove any undefined values
       const productData = {
         name: data.name || "",
         description: data.description || "",
@@ -85,14 +84,11 @@ export const useProductStore = create<ProductState>((set) => ({
         createdAt: new Date().toISOString(),
       };
 
-      // Log the product data before adding to Firestore to debug
       console.log("Product data to be added:", productData);
 
-      // Save the product data to Firestore
       const productRef = collection(db, "product");
       const newProductDoc = await addDoc(productRef, productData);
 
-      // Get the newly created product
       const newProductSnapshot = await getDoc(newProductDoc);
       if (newProductSnapshot.exists()) {
         const newProduct = {
@@ -100,7 +96,6 @@ export const useProductStore = create<ProductState>((set) => ({
           ...(newProductSnapshot.data() as Omit<ProductCardProps, "id">),
         };
 
-        // Update the store with the new product
         set((state) => ({
           product: newProduct,
           products: state.products ? [...state.products, newProduct] : state.products,
@@ -139,11 +134,9 @@ export const useProductStore = create<ProductState>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Update the product in Firestore
       const productRef = doc(db, "product", productId);
       await updateDoc(productRef, data);
 
-      // Get the updated product
       const updatedDocSnap = await getDoc(productRef);
       if (updatedDocSnap.exists()) {
         const updatedProduct = {
@@ -151,7 +144,6 @@ export const useProductStore = create<ProductState>((set) => ({
           ...(updatedDocSnap.data() as Omit<ProductCardProps, "id">),
         };
 
-        // Update the store with the updated product
         set((state) => ({
           product: updatedProduct,
           products: state.products ? state.products.map((p) => (p.id === productId ? updatedProduct : p)) : null,

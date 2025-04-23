@@ -1,13 +1,77 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 
 import Image from "next/image";
 
+import Swal from "sweetalert2";
+
 import NotFound from "@/components/NotFound";
-import useCartStore from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 const CartPage = () => {
-  const { items, removeItem, updateQuantity, clearCart, getTotalPrice } = useCartStore();
+  const { items, removeFromCart, updateCartItemQuantity, clearCart } = useCartStore();
+  const { user } = useAuthStore();
+
+  const getTotalPrice = () => {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  useEffect(() => {
+    if (user?.uid) {
+      useCartStore.getState().fetchCart();
+    }
+  }, [user]);
+
+  // Handle item removal with confirmation
+  const handleRemoveItem = (productID: string, productName: string) => {
+    Swal.fire({
+      title: "Remove Item",
+      text: `Are you sure you want to remove ${productName} from your cart?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, remove it!",
+      cancelButtonText: "No, keep it",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        removeFromCart(productID);
+        Swal.fire({
+          title: "Removed!",
+          text: `${productName} has been removed from your cart.`,
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    });
+  };
+
+  // Handle clear cart with confirmation
+  const handleClearCart = () => {
+    Swal.fire({
+      title: "Clear Cart",
+      text: "Are you sure you want to remove all items from your cart?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, clear it!",
+      cancelButtonText: "No, keep items",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        clearCart();
+        Swal.fire({
+          title: "Cleared!",
+          text: "Your cart has been cleared.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    });
+  };
 
   if (items.length === 0) {
     return (
@@ -21,7 +85,7 @@ const CartPage = () => {
     <div className="p-4 mx-auto md:w-8/12 lg:w-10/12 bg-white shadow-md rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Your Cart</h2>
-        <button className="btn btn-sm btn-error" onClick={clearCart}>
+        <button className="btn btn-sm btn-error" onClick={handleClearCart}>
           Clear Cart
         </button>
       </div>
@@ -43,14 +107,14 @@ const CartPage = () => {
               <div className="flex items-center mt-2">
                 <button
                   className="btn btn-xs btn-outline"
-                  onClick={() => updateQuantity(item.productID, Math.max(1, item.quantity - 1))}
+                  onClick={() => updateCartItemQuantity(item.productID, Math.max(1, item.quantity - 1))}
                 >
                   -
                 </button>
                 <span className="mx-2">{item.quantity}</span>
                 <button
                   className="btn btn-xs btn-outline"
-                  onClick={() => updateQuantity(item.productID, item.quantity + 1)}
+                  onClick={() => updateCartItemQuantity(item.productID, item.quantity + 1)}
                 >
                   +
                 </button>
@@ -58,7 +122,10 @@ const CartPage = () => {
             </div>
 
             <div className="flex flex-col items-end justify-between">
-              <button className="btn btn-xs btn-error btn-outline" onClick={() => removeItem(item.productID)}>
+              <button
+                className="btn btn-xs btn-error btn-outline"
+                onClick={() => handleRemoveItem(item.productID, item.name)}
+              >
                 Remove
               </button>
               <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>

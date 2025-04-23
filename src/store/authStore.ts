@@ -3,7 +3,9 @@ import { collection, getDoc, doc, setDoc, query, where, getDocs } from "firebase
 import { create } from "zustand";
 
 import { auth, db } from "@/firebase/firebase";
-import { AuthState } from "@/types/auth.types";
+import { AuthState, UserProfile } from "@/types/auth.types";
+
+import { useCartStore } from "./cartStore";
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -12,10 +14,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   initialize: () => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        set({ user, isAuthenticated: true, isLoading: false });
-        console.log(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as UserProfile;
+            set({
+              user: { ...userData, uid: firebaseUser.uid },
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          } else {
+            set({ user: firebaseUser, isAuthenticated: true, isLoading: false });
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          set({ user: firebaseUser, isAuthenticated: true, isLoading: false });
+        }
       } else {
         set({ user: null, isAuthenticated: false, isLoading: false });
       }
@@ -26,22 +42,33 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email, password) => {
     set({ isLoading: true, error: null });
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-    const users = querySnapshot.docs.map((doc) => doc.data());
     try {
-      if (users.length > 0) {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log(userCredential);
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
 
-        const usersRef = doc(db, "users", email);
-        const docSnap = await getDoc(usersRef);
-        set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
+      if (!querySnapshot.empty) {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+
+        if (userDoc.exists()) {
+          setTimeout(() => {
+            useCartStore.getState().mergeLocalCartWithUserCart();
+          }, 500);
+          const userData = userDoc.data() as UserProfile;
+          set({
+            user: { ...userData, uid: userCredential.user.uid },
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } else {
+          set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
+        }
+
         localStorage.setItem("user", JSON.stringify(userCredential.user));
-        console.log(userCredential.user, docSnap.data());
       } else {
-        set({ error: "Email or password is wrong, Please try again", isLoading: false });
+        set({ error: "Email or password is wrong. Please try again", isLoading: false });
       }
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -50,24 +77,29 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signup: async (username, email, password, role) => {
     set({ isLoading: true, error: null });
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-    const users = querySnapshot.docs.map((doc) => doc.data());
     try {
-      if (users.length === 0) {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log(userCredential);
-        set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
-        const docRef = await setDoc(doc(db, "users", userCredential.user.uid), {
+        const userProfile: UserProfile = {
           username,
           email,
           password,
-          role: role,
+          role,
+          createdAt: new Date(),
+        };
+        await setDoc(doc(db, "users", userCredential.user.uid), userProfile);
+
+        set({
+          user: { ...userProfile, uid: userCredential.user.uid },
+          isAuthenticated: true,
+          isLoading: false,
         });
-        console.log("Document written with ID: ", docRef);
       } else {
-        set({ error: "Email already exists, Please try other email", isLoading: false });
+        set({ error: "Email already exists. Please try another email", isLoading: false });
       }
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

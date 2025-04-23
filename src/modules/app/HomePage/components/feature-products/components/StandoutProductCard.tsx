@@ -7,7 +7,8 @@ import clsx from "clsx";
 import { FaShoppingCart } from "react-icons/fa";
 import Swal from "sweetalert2";
 
-import useCartStore from "@/store/cartStore";
+import { useCartStore } from "@/store/cartStore";
+import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
 const StandoutProductCard = ({
@@ -20,27 +21,42 @@ const StandoutProductCard = ({
   trending,
   imgUrl,
 }: ProductCardProps) => {
-  const { addItem } = useCartStore();
+  const { addToCart } = useCartStore();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
 
-    addItem({
+    const cartItem: CartItem = {
       productID: id,
       name: name,
       price: price ?? 0,
       imgUrl: imgUrl[0],
-    });
+      quantity: 1,
+    };
 
-    // Optional: Show a toast notification
-    Swal.fire({
-      title: "Added to Cart",
-      text: `${name} has been added to your cart.`,
-      icon: "success",
-      draggable: true,
-    });
+    try {
+      await addToCart(cartItem);
+      Swal.fire({
+        title: "Added to Cart",
+        text: `${name} has been added to your cart.`,
+        icon: "success",
+        draggable: true,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error instanceof Error ? error.message : "Failed to add item to cart",
+        icon: "error",
+        draggable: true,
+      });
+    }
   };
+
   const rating = 3;
+
   return (
     <div className="card bg-base-100 shadow-sm flex flex-col justify-center items-center hover:shadow-lg relative h-full w-full border-4 border-[#DC2626] rounded-lg gap-5">
       <Link href={`/product/${id}`} className="mt-6">
@@ -72,6 +88,7 @@ const StandoutProductCard = ({
             );
           })}
         </div>
+
         <Link href={`/product/${id}`}>
           <span className="card-title lg:text-base sm:text-xs text-[10px]">{name}</span>
 
@@ -81,6 +98,7 @@ const StandoutProductCard = ({
             <span className="text-gray-primary text-xs">{description.slice(0, 256)}...</span>
           )}
         </Link>
+
         <div className="flex items-center gap-2">
           <span className={clsx("text-red-primary font-bold lg:text-xl sm:text-sm text-xs", newPrice == 0 && "hidden")}>
             ${newPrice}
@@ -94,21 +112,31 @@ const StandoutProductCard = ({
             ${oldPrice}
           </span>
         </div>
-        <span className="text-sm font-bold text-green-600">IN STOCK</span>
+
+        <span className={clsx("text-sm font-bold", stockQuantity > 0 ? "text-green-600" : "text-red-600")}>
+          {stockQuantity > 0 ? "IN STOCK" : "OUT OF STOCK"}
+        </span>
+
         <div className="flex flex-col gap-2 mt-5">
           <span className="text-gray-primary text-xs ">This product is about to run out</span>
           <div className="w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
           <span className="text-gray-secondary text-xs">
-            Avalible only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
+            Available only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
           </span>
         </div>
-        <div className="card-actions ">
-          <button className="btn w-full bg-[#16A34A] text-white" onClick={handleAddToCart}>
+
+        <div className="card-actions">
+          <button
+            className="btn w-full bg-[#16A34A] text-white"
+            onClick={handleAddToCart}
+            disabled={stockQuantity <= 0}
+          >
             <FaShoppingCart />
-            Add to Cart
+            {stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
           </button>
         </div>
       </div>
+
       {trending && (
         <div className="rounded-full size-10 text-xs bg-red-600 absolute inset-1.5 flex items-center justify-center text-white animate-wiggle ease-in">
           New

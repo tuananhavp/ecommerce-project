@@ -6,7 +6,8 @@ import Link from "next/link";
 import clsx from "clsx";
 import Swal from "sweetalert2";
 
-import useCartStore from "@/store/cartStore";
+import { useCartStore } from "@/store/cartStore";
+import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
 const ProductCard = ({
@@ -19,25 +20,43 @@ const ProductCard = ({
   trending,
   imgUrl,
 }: ProductCardProps) => {
-  const { addItem } = useCartStore();
+  const { addToCart } = useCartStore();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
 
-    addItem({
+    // Create a cart item with the required properties
+    const cartItem: CartItem = {
       productID: id,
       name: name,
       price: price ?? 0,
       imgUrl: imgUrl[0],
-    });
+      quantity: 1, // Default quantity is 1 when adding to cart
+    };
 
-    // Optional: Show a toast notification
-    Swal.fire({
-      title: "Added to Cart",
-      text: `${name} has been added to your cart.`,
-      icon: "success",
-      draggable: true,
-    });
+    try {
+      // Add to cart
+      await addToCart(cartItem);
+
+      // Show success notification
+      Swal.fire({
+        title: "Added to Cart",
+        text: `${name} has been added to your cart.`,
+        icon: "success",
+        draggable: true,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      // Show error notification
+      Swal.fire({
+        title: "Error",
+        text: error instanceof Error ? error.message : "Failed to add item to cart",
+        icon: "error",
+        draggable: true,
+      });
+    }
   };
 
   return (
@@ -86,8 +105,12 @@ const ProductCard = ({
           </span>
 
           <div className="card-actions">
-            <button className="btn btn-primary w-full bg-purple-primary" onClick={handleAddToCart}>
-              Add to Cart
+            <button
+              className="btn btn-primary w-full bg-purple-primary"
+              onClick={handleAddToCart}
+              disabled={stockQuantity <= 0}
+            >
+              {stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
         </div>

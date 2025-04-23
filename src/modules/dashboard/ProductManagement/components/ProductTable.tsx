@@ -10,7 +10,7 @@ import Loading from "@/components/Loading";
 import { useProductStore } from "@/store/productStore";
 import { ProductCardProps } from "@/types/product.types";
 
-import EditProductForm from "../EditProductForm";
+import EditProductForm from "./EditProductForm";
 
 const ProductTable = () => {
   const { products, getAllProduct, deleteProduct, isLoading } = useProductStore();

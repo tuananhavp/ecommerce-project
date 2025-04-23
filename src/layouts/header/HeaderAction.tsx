@@ -9,7 +9,7 @@ import { CgProfile } from "react-icons/cg";
 import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
 
 import { useAuthStore } from "@/store/authStore";
-import useCartStore from "@/store/cartStore";
+import { useCartStore } from "@/store/cartStore";
 
 const HeaderAction = () => {
   const userDropdown = [
@@ -18,17 +18,29 @@ const HeaderAction = () => {
   ];
 
   const { user, logout } = useAuthStore((state) => state);
-  const totalItems = useCartStore((state) => state.getTotalItems());
+  const { fetchCart, getTotalItems } = useCartStore();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
 
+  const totalItems = getTotalItems();
+
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    fetchCart();
+  }, [fetchCart]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      useCartStore.getState().mergeLocalCartWithUserCart();
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
+    setTimeout(() => {
+      fetchCart();
+    }, 300);
     router.push("/login");
   };
 
@@ -64,7 +76,6 @@ const HeaderAction = () => {
         </Link>
         <Link href={"/cart"} className="relative">
           <IoCartOutline className="md:size-8 size-4 hover:opacity-60" />
-          {/* Only show cart badge if component is mounted (client-side) */}
           {isMounted && totalItems > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs flex items-center justify-center min-w-5 h-5 px-1">
               {totalItems}
