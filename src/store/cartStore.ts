@@ -7,9 +7,11 @@ import { CartItem } from "@/types/cart.types";
 import { useAuthStore } from "./authStore";
 
 const CART_STORAGE_KEY = "guest_cart_items";
+const SELECTED_ITEMS_STORAGE_KEY = "selected_cart_items";
 
 interface CartState {
   items: CartItem[];
+  selectedItems: string[]; // Array of selected product IDs
   isLoading: boolean;
   error: string | null;
 
@@ -20,10 +22,19 @@ interface CartState {
   clearCart: () => Promise<void>;
   getTotalItems: () => number;
   mergeLocalCartWithUserCart: () => Promise<void>;
+
+  toggleItemSelection: (productID: string) => void;
+  selectAllItems: () => void;
+  deselectAllItems: () => void;
+  getSelectedItems: () => CartItem[];
+  getSelectedItemsCount: () => number;
+  getSelectedItemsTotal: () => number;
+  clearSelectedItems: () => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
+  selectedItems: [],
   isLoading: false,
   error: null,
 
@@ -57,6 +68,14 @@ export const useCartStore = create<CartState>((set, get) => ({
             isLoading: false,
           });
         }
+      }
+
+      // Retrieve selected items from localStorage
+      const storedSelectedItems = localStorage.getItem(SELECTED_ITEMS_STORAGE_KEY);
+      if (storedSelectedItems) {
+        set({
+          selectedItems: JSON.parse(storedSelectedItems),
+        });
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -104,6 +123,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       const currentItems = get().items;
       const updatedItems = currentItems.filter((item) => item.productID !== productID);
 
+      // Also remove from selected items if it was selected
+      const currentSelectedItems = [...get().selectedItems];
+      const updatedSelectedItems = currentSelectedItems.filter((id) => id !== productID);
+
       if (user?.uid) {
         await updateDoc(doc(db, "users", user.uid), {
           cart: updatedItems,
@@ -112,8 +135,12 @@ export const useCartStore = create<CartState>((set, get) => ({
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updatedItems));
       }
 
+      // Update localStorage for selected items
+      localStorage.setItem(SELECTED_ITEMS_STORAGE_KEY, JSON.stringify(updatedSelectedItems));
+
       set({
         items: updatedItems,
+        selectedItems: updatedSelectedItems,
         isLoading: false,
       });
     } catch (error) {
@@ -135,6 +162,11 @@ export const useCartStore = create<CartState>((set, get) => ({
           currentItems[itemIndex].quantity = quantity;
         } else {
           currentItems = currentItems.filter((item) => item.productID !== productID);
+          // Also remove from selected items if it was selected
+          const currentSelectedItems = [...get().selectedItems];
+          const updatedSelectedItems = currentSelectedItems.filter((id) => id !== productID);
+          set({ selectedItems: updatedSelectedItems });
+          localStorage.setItem(SELECTED_ITEMS_STORAGE_KEY, JSON.stringify(updatedSelectedItems));
         }
 
         if (user?.uid) {
@@ -171,8 +203,12 @@ export const useCartStore = create<CartState>((set, get) => ({
         localStorage.removeItem(CART_STORAGE_KEY);
       }
 
+      // Clear selected items too
+      localStorage.removeItem(SELECTED_ITEMS_STORAGE_KEY);
+
       set({
         items: [],
+        selectedItems: [],
         isLoading: false,
       });
     } catch (error) {
@@ -240,5 +276,54 @@ export const useCartStore = create<CartState>((set, get) => ({
       console.error("Error merging carts:", error);
       set({ error: (error as Error).message, isLoading: false });
     }
+  },
+
+  // Item selection methods
+  toggleItemSelection: (productID: string) => {
+    const currentSelectedItems = [...get().selectedItems];
+    const index = currentSelectedItems.indexOf(productID);
+
+    if (index >= 0) {
+      // Item is already selected, remove it
+      currentSelectedItems.splice(index, 1);
+    } else {
+      // Item is not selected, add it
+      currentSelectedItems.push(productID);
+    }
+
+    localStorage.setItem(SELECTED_ITEMS_STORAGE_KEY, JSON.stringify(currentSelectedItems));
+    set({ selectedItems: currentSelectedItems });
+  },
+
+  selectAllItems: () => {
+    const allItemIDs = get().items.map((item) => item.productID);
+    localStorage.setItem(SELECTED_ITEMS_STORAGE_KEY, JSON.stringify(allItemIDs));
+    set({ selectedItems: allItemIDs });
+  },
+
+  deselectAllItems: () => {
+    localStorage.setItem(SELECTED_ITEMS_STORAGE_KEY, JSON.stringify([]));
+    set({ selectedItems: [] });
+  },
+
+  getSelectedItems: () => {
+    const { items, selectedItems } = get();
+    return items.filter((item) => selectedItems.includes(item.productID));
+  },
+
+  getSelectedItemsCount: () => {
+    return get().selectedItems.length;
+  },
+
+  getSelectedItemsTotal: () => {
+    const { items, selectedItems } = get();
+    return items
+      .filter((item) => selectedItems.includes(item.productID))
+      .reduce((total, item) => total + item.price * item.quantity, 0);
+  },
+
+  clearSelectedItems: () => {
+    localStorage.removeItem(SELECTED_ITEMS_STORAGE_KEY);
+    set({ selectedItems: [] });
   },
 }));

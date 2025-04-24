@@ -10,29 +10,38 @@ import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMe
 
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
+import { useFavoriteStore } from "@/store/favouriteStore";
 
 const HeaderAction = () => {
   const userDropdown = [
     { name: "Check Out", link: "/checkout" },
-    { name: "Order Tracking", link: "/order-tracking" },
+    { name: "Order Tracking", link: "/orders" },
   ];
 
   const { user, logout } = useAuthStore((state) => state);
   const { fetchCart, getTotalItems } = useCartStore();
+  const { fetchFavorites, favorites } = useFavoriteStore();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
 
-  const totalItems = getTotalItems();
+  const totalCartItems = getTotalItems();
+  const totalFavorites = favorites.length;
 
   useEffect(() => {
-    setIsMounted(true);
-    fetchCart();
-  }, [fetchCart]);
+    const initData = async () => {
+      setIsMounted(true);
+      await fetchCart();
+      await fetchFavorites();
+    };
+
+    initData();
+  }, [fetchCart, fetchFavorites, user]);
 
   useEffect(() => {
     if (user?.uid) {
       useCartStore.getState().mergeLocalCartWithUserCart();
+      useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
     }
   }, [user]);
 
@@ -40,6 +49,7 @@ const HeaderAction = () => {
     await logout();
     setTimeout(() => {
       fetchCart();
+      fetchFavorites();
     }, 300);
     router.push("/login");
   };
@@ -71,14 +81,19 @@ const HeaderAction = () => {
       </div>
 
       <div className="sm:flex hidden items-center gap-3 px-5">
-        <Link href={"/favourite"}>
+        <Link href={"/favourite"} className="relative">
           <IoHeartOutline className="md:size-8 size-4 hover:opacity-60" />
+          {isMounted && totalFavorites > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs flex items-center justify-center min-w-5 h-5 px-1">
+              {totalFavorites}
+            </span>
+          )}
         </Link>
         <Link href={"/cart"} className="relative">
           <IoCartOutline className="md:size-8 size-4 hover:opacity-60" />
-          {isMounted && totalItems > 0 && (
+          {isMounted && totalCartItems > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs flex items-center justify-center min-w-5 h-5 px-1">
-              {totalItems}
+              {totalCartItems}
             </span>
           )}
         </Link>

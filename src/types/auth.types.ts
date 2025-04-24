@@ -11,8 +11,7 @@ export interface UserProfile {
   cart?: CartItem[];
 }
 
-// This extends the basic User type to include your UserProfile properties
-export type EnhancedUser = (User | UserProfile) & { uid?: string };
+export type EnhancedUser = (User & UserProfile) & { uid?: string };
 
 export interface AuthState {
   user: EnhancedUser | null;

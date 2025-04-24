@@ -1,27 +1,5 @@
-import { string, z } from "zod";
-
-export type Order = {
-  id: string;
-  customerID: string;
-  customerName: string;
-  orderDate: Date;
-  deliveryAddress: Address;
-  orderStatus: OrderStatus;
-  orderItems: OrderItem[];
-  totalAmount: number;
-  trackingNumber?: string;
-  paymentMethod?: "COD" | "Card" | "Paypal";
-};
-
-export type Address = {
-  id: string;
-  recipientName: string;
-  phone: string;
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-};
+import { FieldValue } from "firebase/firestore";
+import { z, string } from "zod";
 
 export type OrderStatus = "Pending" | "In Process" | "Shipping" | "Completed" | "Cancelled" | "Refunded";
 
@@ -33,6 +11,47 @@ export type OrderItem = {
   pricePerUnit: number;
   subtotal: number;
 };
+
+export type Address = {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+
+export type Order = {
+  id?: string;
+  customerID: string;
+  customerName: string;
+  email: string;
+  phone: string;
+  createdAt: FieldValue;
+  deliveryAddress: Address;
+  orderStatus: OrderStatus;
+  orderItems: OrderItem[];
+  totalAmount: number;
+  shippingMethod: string;
+  shippingCost: number;
+  trackingNumber?: string;
+  paymentMethod: "COD" | "Card" | "Paypal";
+  notes?: string;
+};
+
+// This type will be used for the input data when creating a new order
+export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID">;
+
+export interface OrderState {
+  orders: Order[];
+  currentOrder: Order | null;
+  isLoading: boolean;
+  error: string | null;
+
+  fetchUserOrders: () => Promise<void>;
+  getOrderById: (orderId: string) => Promise<Order | null>;
+  createOrder: (orderData: CreateOrderInput) => Promise<string | null>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
+  cancelOrder: (orderId: string) => Promise<boolean>;
+}
 
 export const OrderFormSchema = z.object({
   customerName: string().min(3, "Customer name is required"),
@@ -54,6 +73,5 @@ export const OrderFormSchema = z.object({
   ),
   totalAmount: z.number().min(0, "Total amount must be a positive number"),
   paymentMethod: z.enum(["COD", "Card", "Paypal"]),
+  notes: z.string().optional(),
 });
-
-export type OrderFormType = z.infer<typeof OrderFormSchema>;

@@ -2,6 +2,7 @@
 import React from "react";
 
 import { FieldValues, Path, UseFormRegister } from "react-hook-form";
+import { twMerge } from "tailwind-merge";
 interface CheckboxProps<T extends FieldValues> extends React.InputHTMLAttributes<HTMLInputElement> {
   name: Path<T>;
   title: string;
@@ -16,14 +17,20 @@ const Checkbox = <T extends FieldValues>({
   title,
   checked,
   value,
-  inputClassName = "checkbox",
+  inputClassName,
   labelClassName,
   register,
 }: CheckboxProps<T>) => {
   return (
     <>
-      <label className={`fieldset-label ${labelClassName}`}>
-        <input type={type} className={` ${inputClassName}`} value={value} checked={checked} {...register(name)} />
+      <label className={twMerge("fieldset-label", labelClassName)}>
+        <input
+          type={type}
+          className={twMerge("checkbox", inputClassName)}
+          value={value}
+          checked={checked}
+          {...register(name)}
+        />
         {title}
       </label>
     </>

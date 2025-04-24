@@ -16,24 +16,24 @@ export const sidebarNav = [
         href: "",
       },
       {
-        name: "Orders",
+        name: "Order",
         icon: BsBorderAll,
-        href: "orders",
+        href: "order",
       },
       {
-        name: "Products",
+        name: "Product",
         icon: LiaShippingFastSolid,
-        href: "products",
+        href: "product",
       },
       {
-        name: "Customers",
+        name: "Customer",
         icon: FiUserCheck,
-        href: "customers",
+        href: "customer",
       },
     ],
   },
   {
-    category: "Apps",
+    category: "App",
     navigations: [
       {
         name: "Profile",
@@ -41,9 +41,9 @@ export const sidebarNav = [
         href: "profile",
       },
       {
-        name: "Users",
+        name: "User",
         icon: RiAccountCircle2Line,
-        href: "users",
+        href: "user",
       },
       {
         name: "Authentication",
@@ -51,9 +51,9 @@ export const sidebarNav = [
         href: "authentication",
       },
       {
-        name: "Error Pages",
+        name: "Error Page",
         icon: MdErrorOutline,
-        href: "error-pages",
+        href: "error-page",
       },
     ],
   },

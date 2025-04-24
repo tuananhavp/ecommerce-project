@@ -6,6 +6,7 @@ import { auth, db } from "@/firebase/firebase";
 import { AuthState, UserProfile } from "@/types/auth.types";
 
 import { useCartStore } from "./cartStore";
+import { useFavoriteStore } from "./favouriteStore";
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -55,6 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (userDoc.exists()) {
           setTimeout(() => {
             useCartStore.getState().mergeLocalCartWithUserCart();
+            useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
           }, 500);
           const userData = userDoc.data() as UserProfile;
           set({
@@ -112,6 +114,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       await signOut(auth);
       set({ user: null, isAuthenticated: false, isLoading: false });
       localStorage.removeItem("user");
+      useFavoriteStore.setState({ favorites: [] });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
     }

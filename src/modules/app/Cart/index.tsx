@@ -1,7 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import Swal from "sweetalert2";
 
@@ -10,8 +12,22 @@ import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 
 const CartPage = () => {
-  const { items, removeFromCart, updateCartItemQuantity, clearCart } = useCartStore();
+  const router = useRouter();
+  const {
+    items,
+    selectedItems,
+    removeFromCart,
+    updateCartItemQuantity,
+    clearCart,
+    toggleItemSelection,
+    selectAllItems,
+    deselectAllItems,
+    getSelectedItemsCount,
+    getSelectedItemsTotal,
+  } = useCartStore();
+
   const { user } = useAuthStore();
+  const [isAllSelected, setIsAllSelected] = useState(false);
 
   const getTotalPrice = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -22,6 +38,11 @@ const CartPage = () => {
       useCartStore.getState().fetchCart();
     }
   }, [user]);
+
+  // Update isAllSelected when items or selectedItems change
+  useEffect(() => {
+    setIsAllSelected(items.length > 0 && selectedItems.length === items.length);
+  }, [items, selectedItems]);
 
   // Handle item removal with confirmation
   const handleRemoveItem = (productID: string, productName: string) => {
@@ -73,10 +94,38 @@ const CartPage = () => {
     });
   };
 
+  // Handle toggle all items selection
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      deselectAllItems();
+    } else {
+      selectAllItems();
+    }
+  };
+
+  // Handle proceed to checkout
+  const handleProceedToCheckout = () => {
+    const selectedCount = getSelectedItemsCount();
+    if (selectedCount === 0) {
+      Swal.fire({
+        title: "No Items Selected",
+        text: "Please select at least one item to proceed to checkout.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    router.push("/checkout");
+  };
+
   if (items.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-96 py-36">
+      <div className="flex flex-col items-center justify-center min-h-96 py-36">
         <NotFound title="Your cart is Empty" />
+        <Link href="/" className="btn btn-primary mt-4">
+          Continue Shopping
+        </Link>
       </div>
     );
   }
@@ -90,12 +139,34 @@ const CartPage = () => {
         </button>
       </div>
 
+      {/* Selection header */}
+      <div className="flex justify-between items-center p-2 bg-gray-100 rounded mb-4">
+        <div className="flex items-center">
+          <input type="checkbox" className="checkbox mr-2" checked={isAllSelected} onChange={handleToggleSelectAll} />
+          <span>Select All Items</span>
+        </div>
+        <div className="text-sm">
+          {getSelectedItemsCount()} of {items.length} items selected
+        </div>
+      </div>
+
       <div className="space-y-4">
         {items.map((item) => (
           <div
             key={item.productID}
-            className="flex shadow-md p-4 rounded-lg bg-gray-50 items-center hover:shadow-lg transition"
+            className={`flex shadow-md p-4 rounded-lg items-center hover:shadow-lg transition ${
+              selectedItems.includes(item.productID) ? "bg-purple-50 border border-purple-200" : "bg-gray-50"
+            }`}
           >
+            <div className="flex items-center mr-2">
+              <input
+                type="checkbox"
+                className="checkbox"
+                checked={selectedItems.includes(item.productID)}
+                onChange={() => toggleItemSelection(item.productID)}
+              />
+            </div>
+
             <div className="w-20 h-20 relative flex-shrink-0">
               <Image src={item.imgUrl} alt={item.name} fill className="object-cover rounded" />
             </div>
@@ -135,12 +206,27 @@ const CartPage = () => {
       </div>
 
       <div className="mt-6 border-t pt-4">
-        <div className="flex justify-between items-center">
-          <span className="font-bold">Total:</span>
-          <span className="font-bold text-lg">${getTotalPrice().toFixed(2)}</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500">Cart Total:</span>
+            <span className="font-medium">${getTotalPrice().toFixed(2)}</span>
+          </div>
+
+          <div className="flex justify-between items-center text-purple-700">
+            <span className="font-medium">Selected Items Total:</span>
+            <span className="font-bold text-lg">${getSelectedItemsTotal().toFixed(2)}</span>
+          </div>
         </div>
 
-        <button className="btn bg-purple-primary text-white w-full mt-4">Proceed to Checkout</button>
+        <button
+          className={`btn ${getSelectedItemsCount() > 0 ? "bg-purple-primary" : "bg-gray-400"} text-white w-full mt-4`}
+          onClick={handleProceedToCheckout}
+          disabled={getSelectedItemsCount() === 0}
+        >
+          {getSelectedItemsCount() === 0
+            ? "Select items to checkout"
+            : `Proceed to Checkout (${getSelectedItemsCount()} items)`}
+        </button>
       </div>
     </div>
   );

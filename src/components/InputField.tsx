@@ -2,6 +2,7 @@
 import React from "react";
 
 import { FieldValues, Path, UseFormRegister } from "react-hook-form";
+import { twMerge } from "tailwind-merge";
 
 interface InputProps<T extends FieldValues> extends React.InputHTMLAttributes<HTMLInputElement> {
   name: Path<T>;
@@ -21,8 +22,8 @@ const InputField = <T extends FieldValues>({
 }: InputProps<T>) => {
   return (
     <>
-      <label className={`fieldset-label ${labelClassName}`}>{title}</label>
-      <input {...register(name)} type={type} className={`input ${inputClassName}`} placeholder={placeholder} />
+      <label className={twMerge("fieldset-label", labelClassName)}>{title}</label>
+      <input {...register(name)} type={type} className={twMerge("input", inputClassName)} placeholder={placeholder} />
     </>
   );
 };

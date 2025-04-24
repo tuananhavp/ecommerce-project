@@ -1,15 +1,16 @@
 import React from "react";
 
-import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-import { IoAddCircleOutline, IoNotificationsOutline } from "react-icons/io5";
-import { LuShoppingCart } from "react-icons/lu";
+import { capitalizeFirstLetter } from "@/helpers";
 
 const AppHeader = () => {
+  const pathName = usePathname().split("/").pop();
+
   return (
-    <div className="navbar flex flex-wrap items-center justify-between bg-layout-primary gap-3 p-4">
+    <div className="navbar flex flex-wrap items-center bg-layout-primary gap-3 p-4">
       <div className="flex items-center">
-        <a className="btn btn-ghost text-xl">Overview</a>
+        <a className="btn btn-ghost text-xl">{capitalizeFirstLetter(pathName || "")}</a>
       </div>
 
       <div className="flex-1 min-w-[200px] max-w-md">
@@ -24,7 +25,7 @@ const AppHeader = () => {
         </label>
       </div>
 
-      <div className="flex items-center gap-3 ml-auto">
+      {/* <div className="flex items-center gap-3 ml-auto">
         <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <div className="indicator">
@@ -60,14 +61,7 @@ const AppHeader = () => {
             </div>
           </div>
         </div>
-
-        <Link href={"/dashboard/products/create-product"}>
-          <button className="btn btn-sm bg-purple-primary text-white text-sm rounded-2xl hover:opacity-85">
-            <IoAddCircleOutline className="size-5" />
-            <span className="hidden sm:inline">Add Product</span>
-          </button>
-        </Link>
-      </div>
+      </div> */}
     </div>
   );
 };

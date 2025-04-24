@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 
 import clsx from "clsx";
+import { IoHeartOutline, IoHeart } from "react-icons/io5";
 import Swal from "sweetalert2";
 
 import { useCartStore } from "@/store/cartStore";
+import { useFavoriteStore } from "@/store/favouriteStore";
 import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
@@ -21,10 +23,18 @@ const ProductCard = ({
   imgUrl,
 }: ProductCardProps) => {
   const { addToCart } = useCartStore();
+  const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
+  const [isFav, setIsFav] = useState(false);
+
+  // Calculate the effective price
+  const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+  useEffect(() => {
+    fetchFavorites();
+    setIsFav(isFavorite(id));
+  }, [id, isFavorite, fetchFavorites]);
 
   const handleAddToCart = async () => {
-    const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
-
     // Create a cart item with the required properties
     const cartItem: CartItem = {
       productID: id,
@@ -59,8 +69,54 @@ const ProductCard = ({
     }
   };
 
+  const handleToggleFavorite = async () => {
+    try {
+      if (isFav) {
+        await removeFromFavorites(id);
+        setIsFav(false);
+        Swal.fire({
+          title: "Removed from Favorites",
+          text: `${name} has been removed from your favorites.`,
+          icon: "success",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } else {
+        await addToFavorites({
+          productID: id,
+          name: name,
+          price: price ?? 0,
+          imgUrl: imgUrl[0],
+        });
+        setIsFav(true);
+        Swal.fire({
+          title: "Added to Favorites",
+          text: `${name} has been added to your favorites.`,
+          icon: "success",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error instanceof Error ? error.message : "Failed to update favorites",
+        icon: "error",
+        draggable: true,
+      });
+    }
+  };
+
   return (
     <div className="card bg-base-100 shadow-sm flex flex-col h-full hover:shadow-lg relative">
+      <div className="absolute top-2 right-2 z-10">
+        <button onClick={handleToggleFavorite} className="btn btn-circle btn-sm bg-white hover:bg-gray-100">
+          {isFav ? <IoHeart className="size-5 text-red-500" /> : <IoHeartOutline className="size-5 text-gray-600" />}
+        </button>
+      </div>
+
       <Link href={`/product/${id}`} className="flex justify-center">
         <figure className="pt-4">
           <Image src={imgUrl[0]} alt={name} className="object-cover" width={177} height={177} />

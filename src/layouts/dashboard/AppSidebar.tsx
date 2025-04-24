@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
+import clsx from "clsx";
 import { TiThMenu } from "react-icons/ti";
 
 import { sidebarNav } from "@/constants/dashboard";
@@ -10,6 +12,10 @@ import { sidebarNav } from "@/constants/dashboard";
 const AppSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  const pathName = usePathname().split("/").pop();
+  const path = pathName === "dashboard" ? "" : pathName;
+  console.log(path);
 
   useEffect(() => {
     const handleResize = () => {
@@ -62,7 +68,13 @@ const AppSidebar = () => {
                         <li key={`${i}-${navigation.name}`} className="group">
                           <Link
                             href={`/dashboard/${navigation.href}`}
-                            className="btn border-none mt-3 bg-layout-primary justify-start group group-hover:bg-purple-primary group-hover:text-white rounded-3xl"
+                            className={clsx(
+                              "btn border-none mt-3 bg-layout-primary justify-start group group-hover:bg-purple-primary group-hover:text-white rounded-3xl",
+                              path === navigation.href ? "bg-purple-primary text-white" : "text-gray-primary",
+                              path == "create-product" && navigation.href == "product"
+                                ? "bg-purple-primary text-white"
+                                : "text-gray-primary"
+                            )}
                           >
                             <div className="p-1 rounded-full group-hover:bg-white">
                               <navigation.icon className="group-hover:text-black group-hover:bg-white size-5" />

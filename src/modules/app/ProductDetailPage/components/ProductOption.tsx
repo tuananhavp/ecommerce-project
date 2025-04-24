@@ -1,23 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import clsx from "clsx";
 import { AiOutlineMinus } from "react-icons/ai";
 import { BsWallet2 } from "react-icons/bs";
 import { CiShoppingCart } from "react-icons/ci";
 import { FaShoppingBag } from "react-icons/fa";
-import { FaPlus, FaRegHeart } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa6";
 import { GrShieldSecurity } from "react-icons/gr";
 import { IoMdShare } from "react-icons/io";
-import { IoGitCompareSharp } from "react-icons/io5";
+import { IoGitCompareSharp, IoHeart, IoHeartOutline } from "react-icons/io5";
+import Swal from "sweetalert2";
 
+import { useCartStore } from "@/store/cartStore";
+import { useFavoriteStore } from "@/store/favouriteStore";
+import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
 const ProductOption = ({ product }: { product: ProductCardProps }) => {
-  const { name, description, oldPrice, newPrice } = product;
+  const { id, name, description, oldPrice, newPrice, imgUrl, stockQuantity } = product;
   const initialQuantity = 1,
-    maxQuantity = 10,
+    maxQuantity = stockQuantity > 10 ? 10 : stockQuantity,
     rating = 3;
   const [quantity, setQuantity] = useState(initialQuantity);
+  const [isMounted, setIsMounted] = useState(false);
+
+  const { addToCart } = useCartStore();
+  const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
+
+  const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+  useEffect(() => {
+    const init = async () => {
+      await fetchFavorites();
+      setIsMounted(true);
+    };
+
+    init();
+  }, [fetchFavorites]);
+
+  const productIsFavorite = isMounted && isFavorite(id);
 
   const handleIncrement = () => {
     if (quantity < maxQuantity) {
@@ -36,6 +57,80 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
     if (!isNaN(value) && value >= 1 && value <= maxQuantity) {
       setQuantity(value);
     }
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      const cartItem: CartItem = {
+        productID: id,
+        name: name,
+        price: price ?? 0,
+        imgUrl: imgUrl[0],
+        quantity: quantity,
+      };
+
+      await addToCart(cartItem);
+
+      Swal.fire({
+        title: "Added to Cart",
+        text: `${quantity} ${quantity > 1 ? "items" : "item"} of ${name} added to your cart.`,
+        icon: "success",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error instanceof Error ? error.message : "Failed to add item to cart",
+        icon: "error",
+      });
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    try {
+      if (productIsFavorite) {
+        await removeFromFavorites(id);
+        Swal.fire({
+          title: "Removed from Favorites",
+          text: `${name} has been removed from your favorites.`,
+          icon: "success",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } else {
+        await addToFavorites({
+          productID: id,
+          name: name,
+          price: price ?? 0,
+          imgUrl: imgUrl[0],
+        });
+        Swal.fire({
+          title: "Added to Favorites",
+          text: `${name} has been added to your favorites.`,
+          icon: "success",
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error instanceof Error ? error.message : "Failed to update favorites",
+        icon: "error",
+      });
+    }
+  };
+
+  // Handle buy now (you can implement this if needed)
+  const handleBuyNow = () => {
+    // Add to cart and redirect to checkout page
+    handleAddToCart();
+    // Redirect to checkout page
+    window.location.href = "/checkout";
   };
 
   return (
@@ -80,31 +175,64 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
         </span>
       </div>
 
+      {stockQuantity > 0 ? (
+        <div className="flex items-center gap-2">
+          <span className="text-green-600 font-bold text-sm">IN STOCK</span>
+          <span className="text-gray-secondary text-xs">
+            Available: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
+          </span>
+        </div>
+      ) : (
+        <div className="text-red-600 font-bold text-sm">OUT OF STOCK</div>
+      )}
+
       <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center gap-3 md:gap-5">
         <div className="p-1 md:p-2 border-2 border-gray-300 rounded-md flex items-center">
-          <button className="px-1 md:px-2" onClick={handleDecrement} disabled={quantity <= 1}>
-            <AiOutlineMinus className="text-black cursor-pointer" />
+          <button className="px-1 md:px-2" onClick={handleDecrement} disabled={quantity <= 1 || stockQuantity <= 0}>
+            <AiOutlineMinus className={clsx("cursor-pointer", stockQuantity <= 0 && "text-gray-400")} />
           </button>
           <input
             type="text"
-            className="w-12 sm:w-16 md:w-20 lg:w-28 text-center focus:outline-none text-sm md:text-base"
+            className={clsx(
+              "w-12 sm:w-16 md:w-20 lg:w-28 text-center focus:outline-none text-sm md:text-base",
+              stockQuantity <= 0 && "text-gray-400"
+            )}
             value={quantity}
             onChange={handleInputChange}
             min="1"
             max={maxQuantity}
+            disabled={stockQuantity <= 0}
           />
-          <button className="px-1 md:px-2" onClick={handleIncrement} disabled={quantity >= maxQuantity}>
-            <FaPlus className="cursor-pointer" />
+          <button
+            className="px-1 md:px-2"
+            onClick={handleIncrement}
+            disabled={quantity >= maxQuantity || stockQuantity <= 0}
+          >
+            <FaPlus className={clsx("cursor-pointer", stockQuantity <= 0 && "text-gray-400")} />
           </button>
         </div>
 
         <div>
           <div className="flex flex-wrap gap-2 md:gap-3 w-full sm:w-auto">
-            <button className="font-bold text-white py-2 md:py-3 px-4 md:px-6 lg:px-9 bg-green-600 rounded-lg md:rounded-xl hover:opacity-85 flex items-center gap-1 md:gap-2 cursor-pointer text-xs md:text-sm">
+            <button
+              className={clsx(
+                "font-bold text-white py-2 md:py-3 px-4 md:px-6 lg:px-9 bg-green-600 rounded-lg md:rounded-xl hover:opacity-85 flex items-center gap-1 md:gap-2 cursor-pointer text-xs md:text-sm",
+                stockQuantity <= 0 && "opacity-60 cursor-not-allowed"
+              )}
+              onClick={handleAddToCart}
+              disabled={stockQuantity <= 0}
+            >
               <CiShoppingCart className="size-4 md:size-6" />
               <p className="item__btn-text">Add to Cart</p>
             </button>
-            <button className="font-bold text-white py-2 md:py-3 px-4 md:px-6 lg:px-9 bg-[#212529] rounded-lg md:rounded-xl hover:opacity-85 flex items-center gap-1 md:gap-2 cursor-pointer text-xs md:text-sm">
+            <button
+              className={clsx(
+                "font-bold text-white py-2 md:py-3 px-4 md:px-6 lg:px-9 bg-[#212529] rounded-lg md:rounded-xl hover:opacity-85 flex items-center gap-1 md:gap-2 cursor-pointer text-xs md:text-sm",
+                stockQuantity <= 0 && "opacity-60 cursor-not-allowed"
+              )}
+              onClick={handleBuyNow}
+              disabled={stockQuantity <= 0}
+            >
               <FaShoppingBag className="size-3 md:size-4" />
               <p className="item__btn-text">Buy Now</p>
             </button>
@@ -134,9 +262,16 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
       </div>
 
       <div className="flex flex-wrap gap-2 md:gap-3">
-        <button className="btn btn-ghost btn-sm md:btn-md text-xs md:text-sm px-2 md:px-3">
-          <FaRegHeart className="size-4 md:size-5" />
-          <span className="hidden sm:inline">Add to Wishlist</span>
+        <button
+          className="btn btn-ghost btn-sm md:btn-md text-xs md:text-sm px-2 md:px-3 flex gap-1"
+          onClick={handleToggleFavorite}
+        >
+          {productIsFavorite ? (
+            <IoHeart className="size-4 md:size-5 text-red-500" />
+          ) : (
+            <IoHeartOutline className="size-4 md:size-5" />
+          )}
+          <span className="hidden sm:inline">{productIsFavorite ? "Remove from Wishlist" : "Add to Wishlist"}</span>
         </button>
         <button className="btn btn-ghost btn-sm md:btn-md text-xs md:text-sm px-2 md:px-3">
           <IoMdShare className="size-4 md:size-5" />

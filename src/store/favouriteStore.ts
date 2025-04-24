@@ -1,147 +1,218 @@
-// import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "firebase/firestore";
-// import { create } from "zustand";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-// import { db } from "@/firebase/firebase";
-// import { FavouriteState } from "@/types/cart.types";
+import { db } from "@/firebase/firebase";
+import { FavoriteItem } from "@/types/favourite.types";
 
-// import { useAuthStore } from "./authStore";
+import { useAuthStore } from "./authStore";
 
-// export const useFavouriteStore = create<FavouriteState>((set, get) => ({
-//   items: [],
-//   isLoading: false,
-//   error: null,
+interface FavoriteState {
+  favorites: FavoriteItem[];
+  isLoading: boolean;
+  error: string | null;
 
-//   syncFavouritesWithUser: async (uid: string | null) => {
-//     set({ isLoading: true, error: null });
+  fetchFavorites: () => Promise<void>;
+  addToFavorites: (item: Omit<FavoriteItem, "addedAt">) => Promise<void>;
+  removeFromFavorites: (productID: string) => Promise<void>;
+  isFavorite: (productID: string) => boolean;
+  clearFavorites: () => Promise<void>;
+  mergeFavoritesWithUserFavorites: () => Promise<void>;
+}
 
-//     try {
-//       if (uid) {
-//         // User is logged in, fetch favourites from Firestore
-//         const userDoc = await getDoc(doc(db, "favourites", uid));
+export const useFavoriteStore = create<FavoriteState>()(
+  persist(
+    (set, get) => ({
+      favorites: [],
+      isLoading: false,
+      error: null,
 
-//         if (userDoc.exists()) {
-//           // Favourites exist in database
-//           const favouritesData = userDoc.data();
-//           set({
-//             items: favouritesData.items || [],
-//             isLoading: false,
-//           });
-//         } else {
-//           // New user, initialize empty favourites in Firestore
-//           await updateDoc(doc(db, "favourites", uid), {
-//             items: [],
-//             updatedAt: serverTimestamp(),
-//           });
+      fetchFavorites: async () => {
+        const { user } = useAuthStore.getState();
+        set({ isLoading: true, error: null });
 
-//           set({
-//             items: [],
-//             isLoading: false,
-//           });
-//         }
-//       } else {
-//         // User logged out, clear favourites
-//         set({
-//           items: [],
-//           isLoading: false,
-//         });
-//       }
-//     } catch (error) {
-//       set({
-//         error: (error as Error).message,
-//         isLoading: false,
-//       });
-//     }
-//   },
+        try {
+          if (user?.uid) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+              set({ error: "User profile not found", isLoading: false });
+              return;
+            }
 
-//   addItem: async (productID) => {
-//     set({ isLoading: true, error: null });
+            const userData = userDoc.data();
+            set({
+              favorites: userData.favorites || [],
+              isLoading: false,
+            });
+          }
+          // If not logged in, favorites are handled by persist middleware
+          else {
+            set({ isLoading: false });
+          }
+        } catch (error) {
+          console.error("Error fetching favorites:", error);
+          set({ error: (error as Error).message, isLoading: false });
+        }
+      },
 
-//     try {
-//       const { items } = get();
-//       const { user } = useAuthStore.getState();
+      addToFavorites: async (item: Omit<FavoriteItem, "addedAt">) => {
+        const { user } = useAuthStore.getState();
+        set({ isLoading: true, error: null });
 
-//       // Check if item already exists in favourites
-//       if (items.includes(productID)) {
-//         set({ isLoading: false });
-//         return;
-//       }
+        try {
+          const currentFavorites = [...get().favorites];
+          const existingItemIndex = currentFavorites.findIndex((favItem) => favItem.productID === item.productID);
 
-//       // Add to local state
-//       set({
-//         items: [...items, productID],
-//         isLoading: false,
-//       });
+          if (existingItemIndex >= 0) {
+            // Item is already in favorites, so we can skip
+            set({ isLoading: false });
+            return;
+          }
 
-//       // If user is logged in, update Firestore
-//       if (user) {
-//         const favouritesRef = doc(db, "favourites", user.uid);
-//         await updateDoc(favouritesRef, {
-//           items: arrayUnion(productID),
-//           updatedAt: serverTimestamp(),
-//         });
-//       }
-//     } catch (error) {
-//       set({
-//         error: (error as Error).message,
-//         isLoading: false,
-//       });
-//     }
-//   },
+          // Create new favorite item with timestamp
+          const favoriteItem: FavoriteItem = {
+            ...item,
+            addedAt: Date.now(),
+          };
 
-//   removeItem: async (productID) => {
-//     set({ isLoading: true, error: null });
+          // Add new item to favorites
+          const updatedFavorites = [...currentFavorites, favoriteItem];
 
-//     try {
-//       const { items } = get();
-//       const { user } = useAuthStore.getState();
+          // If user is logged in, update Firestore
+          if (user?.uid) {
+            await updateDoc(doc(db, "users", user.uid), {
+              favorites: updatedFavorites,
+            });
+          }
 
-//       // Remove from local state
-//       set({
-//         items: items.filter((id) => id !== productID),
-//         isLoading: false,
-//       });
+          // Update local state (localStorage update handled by persist middleware)
+          set({
+            favorites: updatedFavorites,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error("Error adding item to favorites:", error);
+          set({ error: (error as Error).message, isLoading: false });
+        }
+      },
 
-//       // If user is logged in, update Firestore
-//       if (user) {
-//         const favouritesRef = doc(db, "favourites", user.uid);
-//         await updateDoc(favouritesRef, {
-//           items: arrayRemove(productID),
-//           updatedAt: serverTimestamp(),
-//         });
-//       }
-//     } catch (error) {
-//       set({
-//         error: (error as Error).message,
-//         isLoading: false,
-//       });
-//     }
-//   },
+      removeFromFavorites: async (productID: string) => {
+        const { user } = useAuthStore.getState();
+        set({ isLoading: true, error: null });
 
-//   clearFavourites: async () => {
-//     set({ isLoading: true, error: null });
+        try {
+          const currentFavorites = get().favorites;
+          const updatedFavorites = currentFavorites.filter((item) => item.productID !== productID);
 
-//     try {
-//       const { user } = useAuthStore.getState();
+          // If user is logged in, update Firestore
+          if (user?.uid) {
+            await updateDoc(doc(db, "users", user.uid), {
+              favorites: updatedFavorites,
+            });
+          }
 
-//       // Update local state
-//       set({
-//         items: [],
-//         isLoading: false,
-//       });
+          // Update local state (localStorage update handled by persist middleware)
+          set({
+            favorites: updatedFavorites,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error("Error removing item from favorites:", error);
+          set({ error: (error as Error).message, isLoading: false });
+        }
+      },
 
-//       // If user is logged in, update Firestore
-//       if (user) {
-//         const favouritesRef = doc(db, "favourites", user.uid);
-//         await updateDoc(favouritesRef, {
-//           items: [],
-//           updatedAt: serverTimestamp(),
-//         });
-//       }
-//     } catch (error) {
-//       set({
-//         error: (error as Error).message,
-//         isLoading: false,
-//       });
-//     }
-//   },
-// }));
+      isFavorite: (productID: string) => {
+        return get().favorites.some((item) => item.productID === productID);
+      },
+
+      clearFavorites: async () => {
+        const { user } = useAuthStore.getState();
+        set({ isLoading: true, error: null });
+
+        try {
+          // If user is logged in, update Firestore with empty favorites
+          if (user?.uid) {
+            await updateDoc(doc(db, "users", user.uid), {
+              favorites: [],
+            });
+          }
+
+          // Update local state (localStorage update handled by persist middleware)
+          set({
+            favorites: [],
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error("Error clearing favorites:", error);
+          set({ error: (error as Error).message, isLoading: false });
+        }
+      },
+
+      // Function to merge guest favorites with user favorites when logging in
+      mergeFavoritesWithUserFavorites: async () => {
+        const { user } = useAuthStore.getState();
+        if (!user?.uid) {
+          return; // No user to merge with
+        }
+
+        try {
+          set({ isLoading: true, error: null });
+
+          // Get localStorage favorites (already in state due to persist middleware)
+          const localFavorites = get().favorites;
+
+          // If local favorites is empty, no need to merge
+          if (localFavorites.length === 0) {
+            set({ isLoading: false });
+            return;
+          }
+
+          // Get user favorites from Firestore
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (!userDoc.exists()) {
+            set({ error: "User profile not found", isLoading: false });
+            return;
+          }
+
+          const userData = userDoc.data();
+          const userFavorites: FavoriteItem[] = userData.favorites || [];
+
+          // Merge favorites (avoiding duplicates)
+          const mergedFavorites = [...userFavorites];
+
+          for (const localItem of localFavorites) {
+            const existingItemIndex = mergedFavorites.findIndex((item) => item.productID === localItem.productID);
+
+            if (existingItemIndex === -1) {
+              // Only add items that don't already exist in user favorites
+              mergedFavorites.push(localItem);
+            }
+          }
+
+          // Update Firestore with merged favorites
+          await updateDoc(doc(db, "users", user.uid), {
+            favorites: mergedFavorites,
+          });
+
+          // Update local state (localStorage update handled by persist middleware)
+          set({
+            favorites: mergedFavorites,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error("Error merging favorites:", error);
+          set({ error: (error as Error).message, isLoading: false });
+        }
+      },
+    }),
+    {
+      name: "favorites-storage",
+      storage: createJSONStorage(() => localStorage),
+      // Only persist these fields
+      partialize: (state) => ({
+        favorites: state.favorites,
+      }),
+    }
+  )
+);

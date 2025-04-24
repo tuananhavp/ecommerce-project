@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 import { z } from "zod";
 
 import InputField from "@/components/InputField";
@@ -53,6 +54,14 @@ const EditProductForm = ({ product, onClose }: EditProductFormProps) => {
         trending: data.trending,
       });
       onClose();
+      Swal.fire({
+        title: "Updated Product",
+        text: `${data.name} has been updated successfully.`,
+        icon: "success",
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error("Error updating product:", error);
       alert("Failed to update product. Please try again.");
@@ -61,7 +70,7 @@ const EditProductForm = ({ product, onClose }: EditProductFormProps) => {
     }
   };
   return (
-    <div className="w-full">
+    <div className="w-full p-1.5">
       <h3 className="font-bold text-xl text-text-primary">Edit Product</h3>
       <form onSubmit={handleSubmit(onSubmit)}>
         <fieldset className="fieldset w-full bg-white border border-base-300 p-4 rounded-box">
