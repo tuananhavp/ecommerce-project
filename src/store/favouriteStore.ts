@@ -44,9 +44,7 @@ export const useFavoriteStore = create<FavoriteState>()(
               favorites: userData.favorites || [],
               isLoading: false,
             });
-          }
-          // If not logged in, favorites are handled by persist middleware
-          else {
+          } else {
             set({ isLoading: false });
           }
         } catch (error) {
@@ -64,7 +62,6 @@ export const useFavoriteStore = create<FavoriteState>()(
           const existingItemIndex = currentFavorites.findIndex((favItem) => favItem.productID === item.productID);
 
           if (existingItemIndex >= 0) {
-            // Item is already in favorites, so we can skip
             set({ isLoading: false });
             return;
           }
@@ -209,7 +206,6 @@ export const useFavoriteStore = create<FavoriteState>()(
     {
       name: "favorites-storage",
       storage: createJSONStorage(() => localStorage),
-      // Only persist these fields
       partialize: (state) => ({
         favorites: state.favorites,
       }),

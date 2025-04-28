@@ -5,7 +5,7 @@ export interface ProductCardProps {
   name: string;
   description: string;
   oldPrice: number;
-  newPrice?: number;
+  newPrice?: number | null | undefined;
   stockQuantity: number;
   category: string;
   trending: boolean;
@@ -16,17 +16,36 @@ export interface ProductCardProps {
   reviewsCount?: number;
 }
 
+export interface ProductFilters {
+  priceRange: { min: number; max: number };
+  category: string | null;
+  trending: boolean;
+  inStock: boolean;
+  rating: number | null;
+}
 export interface ProductState {
   products: ProductCardProps[] | null;
   product: ProductCardProps | null;
   isLoading: boolean;
   error: string | null;
+
+  filters: ProductFilters;
+
   getTrendingProduct: () => Promise<void>;
   getAllProduct: () => Promise<void>;
   getAProduct: (productId: string) => Promise<void>;
   createProduct: (data: Omit<ProductCardProps, "id" | "createdAt">) => Promise<ProductCardProps>;
   deleteProduct: (productId: string) => Promise<boolean>;
   updateProduct: (productId: string, data: Partial<Omit<ProductCardProps, "id">>) => Promise<ProductCardProps>;
+
+  // Filter actions
+  setPriceRange: (min: number, max: number) => void;
+  setCategory: (category: string | null) => void;
+  toggleTrending: () => void;
+  toggleInStock: () => void;
+  setRating: (rating: number | null) => void;
+  clearFilters: () => void;
+  applyFilters: () => Promise<void>;
 }
 
 export const productSchema = z.object({

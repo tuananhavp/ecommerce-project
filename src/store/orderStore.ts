@@ -37,14 +37,13 @@ export type Address = {
   country: string;
 };
 
-// Use a proper Firestore timestamp type
 export type Order = {
   id?: string;
   customerID: string;
   customerName: string;
   email: string;
   phone: string;
-  createdAt: Timestamp | FieldValue; // Using Firestore Timestamp type
+  createdAt: Timestamp | FieldValue;
   deliveryAddress: Address;
   orderStatus: OrderStatus;
   orderItems: OrderItem[];
@@ -54,10 +53,9 @@ export type Order = {
   trackingNumber?: string;
   paymentMethod: "COD" | "Card" | "Paypal";
   notes?: string;
-  updatedAt?: Timestamp | FieldValue; // Adding updatedAt field with proper type
+  updatedAt?: Timestamp | FieldValue;
 };
 
-// Input type doesn't need createdAt as it's generated
 export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID" | "updatedAt">;
 
 interface OrderState {
@@ -91,7 +89,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const ordersQuery = query(
         collection(db, "orders"),
         where("customerID", "==", user.uid),
-        orderBy("createdAt", "desc") // Sort by createdAt in descending order
+        orderBy("createdAt", "desc")
       );
 
       const ordersSnapshot = await getDocs(ordersQuery);
@@ -152,7 +150,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const newOrder = {
         ...orderData,
         customerID: user.uid,
-        createdAt: serverTimestamp(), // Use serverTimestamp for consistent timestamping
+        createdAt: serverTimestamp(),
         orderStatus: "Pending" as const,
       };
 
@@ -163,12 +161,10 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const { clearSelectedItems } = useCartStore.getState();
       clearSelectedItems();
 
-      // For the local state, we need to provide a temporary timestamp
-      // since serverTimestamp() will be null until the server processes it
       const localOrder = {
         ...newOrder,
         id: orderRef.id,
-        createdAt: Timestamp.now(), // Use Timestamp.now() instead of new Date() for consistency
+        createdAt: Timestamp.now(),
       };
 
       // Update local state with the new order
@@ -192,7 +188,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     try {
       await updateDoc(doc(db, "orders", orderId), {
         orderStatus: status,
-        updatedAt: serverTimestamp(), // Add an updatedAt timestamp when status changes
+        updatedAt: serverTimestamp(),
       });
 
       // Update local state

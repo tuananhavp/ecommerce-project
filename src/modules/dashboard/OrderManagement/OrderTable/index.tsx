@@ -15,10 +15,12 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { FaEye, FaSpinner } from "react-icons/fa";
+import { IoMdArrowDropdown } from "react-icons/io";
 import { MdCheckCircle, MdLocalShipping, MdCancel } from "react-icons/md";
 import { RiFileListLine } from "react-icons/ri";
 import Swal from "sweetalert2";
 
+import Loading from "@/components/Loading";
 import { db } from "@/firebase/firebase";
 import { Order, OrderStatus } from "@/types/order.types";
 
@@ -147,7 +149,8 @@ const OrdersTable = () => {
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#4F46E5",
-        cancelButtonColor: "#d33",
+        cancelButtonColor: "gray",
+        cancelButtonText: "No, keep it!",
         confirmButtonText: "Yes, update it!",
       });
 
@@ -271,7 +274,7 @@ const OrdersTable = () => {
       {/* Orders Table */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <FaSpinner className="animate-spin h-8 w-8 text-purple-600" />
+          <Loading />
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
@@ -328,10 +331,12 @@ const OrdersTable = () => {
                         <FaEye className="text-blue-600" />
                       </Link>
 
-                      <div className="dropdown dropdown-end">
+                      <div className="dropdown dropdown-bottom">
                         <label tabIndex={0} className="btn btn-ghost btn-xs">
                           Status
+                          <IoMdArrowDropdown />
                         </label>
+
                         <ul
                           tabIndex={0}
                           className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40"

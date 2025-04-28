@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CiMail } from "react-icons/ci";
 import { FiPhone } from "react-icons/fi";
 
-import { footerSections } from "../../constants/footer";
+import { FOOTER_SECTIONS } from "../../constants/footer";
 
 const FooterMid = () => {
   return (
@@ -36,7 +36,7 @@ const FooterMid = () => {
         </ul>
       </div>
 
-      {footerSections.map((col, colIndex) => {
+      {FOOTER_SECTIONS.map((col, colIndex) => {
         return (
           <div key={colIndex} className="">
             <h1 className="font-bold">{col.heading}</h1>

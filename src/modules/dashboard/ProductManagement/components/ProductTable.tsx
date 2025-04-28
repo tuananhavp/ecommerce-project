@@ -178,14 +178,6 @@ const ProductTable = () => {
     setCurrentPage(1);
   }, [searchTerm, categoryFilter, itemsPerPage]);
 
-  if (isLoading && !isDeleting) {
-    return (
-      <div className="flex items-center justify-center mt-36">
-        <Loading />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-sm">
       {/* Header and filters */}
@@ -251,108 +243,115 @@ const ProductTable = () => {
       </div>
 
       {/* Table */}
+
       <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="table table-zebra w-full bg-white">
-          <thead className="bg-gray-50 text-gray-700">
-            <tr>
-              <th className="px-4 py-3 w-10">
-                <label>
-                  <input type="checkbox" className="checkbox checkbox-sm" />
-                </label>
-              </th>
-              <th className="px-4 py-3">Product</th>
-              <th className="px-4 py-3 hidden md:table-cell">Category</th>
-              <th className="px-4 py-3 hidden sm:table-cell">Stock</th>
-              <th className="px-4 py-3 hidden lg:table-cell">Trending</th>
-              <th className="px-4 py-3 text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentProducts.length > 0 ? (
-              currentProducts.map((product) => {
-                const { category, name, stockQuantity, imgUrl, trending, id } = product;
-                return (
-                  <tr key={id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <label>
-                        <input type="checkbox" className="checkbox checkbox-sm" />
-                      </label>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="avatar">
-                          <div className="w-12 h-12 rounded-md relative overflow-hidden">
-                            <Image src={imgUrl[0]} alt={name} fill sizes="48px" className="object-cover" />
+        {isLoading && !isDeleting ? (
+          <div className="flex items-center justify-center h-64">
+            <Loading />
+          </div>
+        ) : (
+          <table className="table table-zebra w-full bg-white">
+            <thead className="bg-gray-50 text-gray-700">
+              <tr>
+                <th className="px-4 py-3 w-10">
+                  <label>
+                    <input type="checkbox" className="checkbox checkbox-sm" />
+                  </label>
+                </th>
+                <th className="px-4 py-3">Product</th>
+                <th className="px-4 py-3 hidden md:table-cell">Category</th>
+                <th className="px-4 py-3 hidden sm:table-cell">Stock</th>
+                <th className="px-4 py-3 hidden lg:table-cell">Trending</th>
+                <th className="px-4 py-3 text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentProducts.length > 0 ? (
+                currentProducts.map((product) => {
+                  const { category, name, stockQuantity, imgUrl, trending, id } = product;
+                  return (
+                    <tr key={id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <label>
+                          <input type="checkbox" className="checkbox checkbox-sm" />
+                        </label>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="avatar">
+                            <div className="w-12 h-12 rounded-md relative overflow-hidden">
+                              <Image src={imgUrl[0]} alt={name} fill sizes="48px" className="object-cover" />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-medium line-clamp-2">{name}</div>
+                            <div className="text-xs text-gray-500">#{id.substring(0, 8)}</div>
                           </div>
                         </div>
-                        <div>
-                          <div className="font-medium line-clamp-2">{name}</div>
-                          <div className="text-xs text-gray-500">#{id.substring(0, 8)}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <span
-                        className={clsx(
-                          "px-2 py-1 rounded-full text-xs font-medium text-white",
-                          getDefaultCategoryColor(category)
-                        )}
-                      >
-                        {category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <div className="flex items-center">
-                        <div
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span
                           className={clsx(
-                            "h-2 rounded-full w-16 mr-2",
-                            stockQuantity > 20 ? "bg-green-500" : stockQuantity > 5 ? "bg-yellow-500" : "bg-red-500"
+                            "px-2 py-1 rounded-full text-xs font-medium text-white",
+                            getDefaultCategoryColor(category)
                           )}
                         >
+                          {category}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <div className="flex items-center">
                           <div
                             className={clsx(
-                              "h-2 rounded-full",
-                              stockQuantity > 20 ? "bg-green-700" : stockQuantity > 5 ? "bg-yellow-700" : "bg-red-700"
+                              "h-2 rounded-full w-16 mr-2",
+                              stockQuantity > 20 ? "bg-green-500" : stockQuantity > 5 ? "bg-yellow-500" : "bg-red-500"
                             )}
-                            style={{ width: `${Math.min(100, stockQuantity * 2)}%` }}
-                          ></div>
+                          >
+                            <div
+                              className={clsx(
+                                "h-2 rounded-full",
+                                stockQuantity > 20 ? "bg-green-700" : stockQuantity > 5 ? "bg-yellow-700" : "bg-red-700"
+                              )}
+                              style={{ width: `${Math.min(100, stockQuantity * 2)}%` }}
+                            ></div>
+                          </div>
+                          <span>{stockQuantity}</span>
                         </div>
-                        <span>{stockQuantity}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell">
-                      {trending ? (
-                        <span className="badge badge-success badge-sm">Trending</span>
-                      ) : (
-                        <span className="badge badge-ghost badge-sm">Regular</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button className="btn btn-sm btn-outline btn-primary" onClick={() => openEditModal(product)}>
-                          <MdOutlineEdit className="size-4" />
-                          <span className="hidden sm:inline">Edit</span>
-                        </button>
-                        <button className="btn btn-sm btn-outline btn-error" onClick={() => openDeleteModal(id)}>
-                          <MdDelete className="size-4" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  {searchTerm || categoryFilter !== "All"
-                    ? "No products match your search criteria"
-                    : "No products available"}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        {trending ? (
+                          <span className="badge badge-success badge-sm">Trending</span>
+                        ) : (
+                          <span className="badge badge-ghost badge-sm">Regular</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <button className="btn btn-sm btn-outline btn-primary" onClick={() => openEditModal(product)}>
+                            <MdOutlineEdit className="size-4" />
+                            <span className="hidden sm:inline">Edit</span>
+                          </button>
+                          <button className="btn btn-sm btn-outline btn-error" onClick={() => openDeleteModal(id)}>
+                            <MdDelete className="size-4" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    {searchTerm || categoryFilter !== "All"
+                      ? "No products match your search criteria"
+                      : "No products available"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}

@@ -7,16 +7,14 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { TiThMenu } from "react-icons/ti";
 
-import { sidebarNav } from "@/constants/dashboard";
+import { SIDEBAR_NAV } from "@/constants/dashboard";
 
 const AppSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
 
-  const pathName = usePathname().split("/").pop();
-  const path = pathName === "dashboard" ? "" : pathName;
-  console.log(path);
-
+  const pathName = usePathname().split("/").slice(2)[0] || "";
+  console.log(pathName);
   useEffect(() => {
     const handleResize = () => {
       const isLarge = window.innerWidth >= 1024;
@@ -60,7 +58,7 @@ const AppSidebar = () => {
               </div>
 
               <ul className="menu rounded-box w-full mt-6">
-                {sidebarNav.map((item, index) => (
+                {SIDEBAR_NAV.map((item, index) => (
                   <li key={`${index} + ${item.category}`}>
                     <span className="text-xs">{item.category}</span>
                     <ul>
@@ -70,8 +68,8 @@ const AppSidebar = () => {
                             href={`/dashboard/${navigation.href}`}
                             className={clsx(
                               "btn border-none mt-3 bg-layout-primary justify-start group group-hover:bg-purple-primary group-hover:text-white rounded-3xl",
-                              path === navigation.href ? "bg-purple-primary text-white" : "text-gray-primary",
-                              path == "create-product" && navigation.href == "product"
+                              pathName === navigation.href ? "bg-purple-primary text-white" : "text-gray-primary",
+                              pathName == "create-product" && navigation.href == "product"
                                 ? "bg-purple-primary text-white"
                                 : "text-gray-primary"
                             )}
@@ -98,12 +96,18 @@ const AppSidebar = () => {
               </div>
 
               <div className="flex flex-col gap-6 items-center">
-                {sidebarNav.flatMap((item) =>
+                {SIDEBAR_NAV.flatMap((item) =>
                   item.navigations.map((navigation, i) => (
                     <Link
                       href={`/dashboard/${navigation.href}`}
                       key={`mini-${i} + ${navigation.name}`}
-                      className="hover:bg-purple-primary p-2 rounded-full hover:text-white transition-colors"
+                      className={clsx(
+                        "btn border-none mt-3 bg-layout-primary justify-start hover:bg-purple-primary hover:text-white rounded-3xl",
+                        pathName === navigation.href ? "bg-purple-primary text-white" : "text-gray-primary",
+                        pathName == "create-product" && navigation.href == "product"
+                          ? "bg-purple-primary text-white"
+                          : "text-gray-primary"
+                      )}
                     >
                       <navigation.icon className="size-5" />
                     </Link>

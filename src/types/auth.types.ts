@@ -11,7 +11,10 @@ export interface UserProfile {
   cart?: CartItem[];
 }
 
-export type EnhancedUser = (User & UserProfile) & { uid?: string };
+export type EnhancedUser = User & {
+  uid: string;
+  username?: string;
+};
 
 export interface AuthState {
   user: EnhancedUser | null;

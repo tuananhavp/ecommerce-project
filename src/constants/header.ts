@@ -1,4 +1,4 @@
-export const headerSubLinks = [
+export const HEADER_SUB_LINKS = [
   {
     link: "/product",
     name: "About us",
@@ -13,7 +13,7 @@ export const headerSubLinks = [
   },
 ];
 
-export const headerNavLinks = [
+export const HEADER_NAV_LINKS = [
   {
     link: "/product",
     name: "Home",
@@ -31,7 +31,7 @@ export const headerNavLinks = [
   },
   {
     link: "/product",
-    name: " Beverages",
+    name: "Beverages",
     list: false,
   },
   {
@@ -45,7 +45,8 @@ export const headerNavLinks = [
     list: false,
   },
 ];
-export const localeSettings = [
+
+export const LOCALE_SETTINGS = [
   {
     title: "English",
     options: ["Vietnam", "China", "Thailand"],

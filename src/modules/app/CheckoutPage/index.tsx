@@ -109,7 +109,7 @@ const CheckoutPage = () => {
       street: "",
       city: "",
       postalCode: "",
-      country: "United States (US)",
+      country: "Vietnam",
       paymentMethod: "COD",
       notes: "",
     },
@@ -194,15 +194,18 @@ const CheckoutPage = () => {
           title: "Order Placed!",
           text: "Your order has been successfully placed. You can place another order with the same items if needed.",
           icon: "success",
+          timer: 5000,
           confirmButtonText: "View Order",
+          timerProgressBar: true,
           showCancelButton: true,
           cancelButtonText: "Continue Shopping",
         }).then((result) => {
           if (result.isConfirmed) {
-            // Redirect to order confirmation page
             router.push(`/orders/${orderID}`);
+          }
+          if (result.isDismissed) {
+            router.push("/");
           } else {
-            // Redirect back to cart or shop
             router.push("/cart");
           }
         });
@@ -450,7 +453,7 @@ const CheckoutPage = () => {
                   .
                 </div>
 
-                <label className="flex items-start mb-6">
+                <label className="flex items-center mb-6">
                   <input
                     type="checkbox"
                     checked={termsAgreed}

@@ -6,7 +6,7 @@ import { MdErrorOutline, MdLockOutline } from "react-icons/md";
 import { RiAccountCircle2Line } from "react-icons/ri";
 import { TbBrandGoogleAnalytics } from "react-icons/tb";
 
-export const sidebarNav = [
+export const SIDEBAR_NAV = [
   {
     category: "E-Commerce",
     navigations: [

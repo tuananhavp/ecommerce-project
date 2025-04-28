@@ -7,7 +7,7 @@ import { FaArrowRight } from "react-icons/fa6";
 
 import { capitalizeFirstLetter } from "@/helpers";
 
-import { categories } from "../../constants";
+import { CATEGORIES } from "../../constants";
 
 import CategoryCard from "./components/CategoryCard";
 
@@ -30,9 +30,9 @@ const Category = () => {
           </Link>
         </div>
         <div className="grid md:grid-rows-1 grid-rows-2 md:grid-cols-5 grid-cols-3 gap-4 mt-6">
-          {categories.map((category, index) => {
+          {CATEGORIES.map((category, index) => {
             return (
-              <CategoryCard name={capitalizeFirstLetter(category.name)} imageUrl={category.imageUrl} key={index} />
+              <CategoryCard name={capitalizeFirstLetter(category.name)} imageUrl={category.image_url} key={index} />
             );
           })}
         </div>

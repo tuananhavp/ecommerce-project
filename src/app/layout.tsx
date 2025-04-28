@@ -6,7 +6,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="light">
+      <head></head>
       <body>{children}</body>
     </html>
   );
 }
+export const metadata = {
+  title: "Jin Store",
+  description: "Jin Store - E-commerce Website",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+};

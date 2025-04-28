@@ -5,30 +5,136 @@ import { shallow } from "zustand/shallow";
 import { db } from "@/firebase/firebase";
 import { ProductCardProps, ProductState } from "@/types/product.types";
 
-export const useProductStore = create<ProductState>((set) => ({
+export const useProductStore = create<ProductState>((set, get) => ({
   products: null,
   product: null,
   isLoading: true,
   error: null,
+  filters: {
+    priceRange: { min: 0, max: 100 },
+    category: null,
+    trending: false,
+    inStock: false,
+    rating: null,
+  },
+
+  setPriceRange: (min, max) => {
+    set((state) => ({
+      filters: { ...state.filters, priceRange: { min, max } },
+    }));
+    get().applyFilters();
+  },
+
+  setCategory: (category) => {
+    set((state) => ({
+      filters: { ...state.filters, category },
+    }));
+    get().applyFilters();
+  },
+
+  toggleTrending: () => {
+    set((state) => ({
+      filters: { ...state.filters, trending: !state.filters.trending },
+    }));
+    get().applyFilters();
+  },
+
+  toggleInStock: () => {
+    set((state) => ({
+      filters: { ...state.filters, inStock: !state.filters.inStock },
+    }));
+    get().applyFilters();
+  },
+
+  setRating: (rating) => {
+    set((state) => ({
+      filters: { ...state.filters, rating },
+    }));
+    get().applyFilters();
+  },
+
+  clearFilters: () => {
+    set(() => ({
+      filters: {
+        priceRange: { min: 0, max: 100 },
+        category: null,
+        trending: false,
+        inStock: false,
+        rating: null,
+      },
+    }));
+    get().getAllProduct(); // Reset to fetch all products
+  },
+
+  // In your useProductStore.js file, update the applyFilters function:
+
+  applyFilters: async () => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const { filters } = get();
+      let q = query(collection(db, "product"));
+
+      // Handle category filtering - making sure to match the case in Firebase
+      if (filters.category) {
+        // Category filter is applied with the correctly cased value
+        q = query(q, where("category", "==", filters.category));
+      }
+
+      if (filters.trending) {
+        q = query(q, where("trending", "==", true));
+      }
+      if (filters.inStock) {
+        q = query(q, where("stockQuantity", ">", 0));
+      }
+      if (filters.rating) {
+        q = query(q, where("rating", ">=", filters.rating));
+      }
+
+      const products: ProductCardProps[] = [];
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const product = {
+          id: doc.id,
+          ...(doc.data() as Omit<ProductCardProps, "id">),
+        };
+
+        // Apply price range filter locally since Firestore doesn't support range queries on multiple fields
+        const priceToFilter =
+          product.newPrice !== null && product.newPrice !== undefined ? product.newPrice : product.oldPrice;
+
+        if (priceToFilter >= filters.priceRange.min && priceToFilter <= filters.priceRange.max) {
+          products.push(product);
+        }
+      });
+
+      set({ products, isLoading: false });
+    } catch (error) {
+      console.error("Error applying filters:", error);
+      set({ products: null, isLoading: false, error: "Failed to apply filters" });
+    }
+  },
+
   getTrendingProduct: async () => {
     try {
       const q = query(collection(db, "product"), where("trending", "==", true));
       const products: ProductCardProps[] = [];
       const querySnapshot = await getDocs(q);
 
-      console.log(querySnapshot.metadata);
       querySnapshot.forEach((doc) => {
         products.push({
           id: doc.id,
           ...(doc.data() as Omit<ProductCardProps, "id">),
         });
       });
-      set({ products: products, isLoading: false });
+      set({ products, isLoading: false });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       set({ products: null, isLoading: false, error: "Failed to fetch the products" });
     }
   },
+
   getAllProduct: async () => {
     try {
       set({ isLoading: true, error: null });
@@ -42,12 +148,13 @@ export const useProductStore = create<ProductState>((set) => ({
           ...(doc.data() as Omit<ProductCardProps, "id">),
         });
       });
-      set({ products: products, isLoading: false });
+      set({ products, isLoading: false });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       set({ products: null, isLoading: false, error: "Failed to fetch the products" });
     }
   },
+
   getAProduct: async (productId: string) => {
     try {
       set({ isLoading: true });
@@ -65,26 +172,18 @@ export const useProductStore = create<ProductState>((set) => ({
         set({ product: null, isLoading: false, error: "Failed to get this product, try again!!" });
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   },
+
   createProduct: async (data) => {
     try {
       set({ isLoading: true, error: null });
 
       const productData = {
-        name: data.name || "",
-        description: data.description || "",
-        oldPrice: data.oldPrice || 0,
-        newPrice: data.newPrice || 0,
-        stockQuantity: data.stockQuantity || 0,
-        category: data.category || "",
-        trending: data.trending === true, // Convert to boolean explicitly
-        imgUrl: Array.isArray(data.imgUrl) ? data.imgUrl : [],
+        ...data,
         createdAt: new Date().toISOString(),
       };
-
-      console.log("Product data to be added:", productData);
 
       const productRef = collection(db, "product");
       const newProductDoc = await addDoc(productRef, productData);
@@ -112,6 +211,7 @@ export const useProductStore = create<ProductState>((set) => ({
       throw error;
     }
   },
+
   deleteProduct: async (productId: string) => {
     try {
       set({ isLoading: true, error: null });
@@ -130,6 +230,7 @@ export const useProductStore = create<ProductState>((set) => ({
       throw error;
     }
   },
+
   updateProduct: async (productId: string, data: Partial<Omit<ProductCardProps, "id">>) => {
     try {
       set({ isLoading: true, error: null });

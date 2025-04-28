@@ -5,9 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
+import clsx from "clsx";
 import { doc, FieldValue, getDoc, Timestamp } from "firebase/firestore";
 
 import { db } from "@/firebase/firebase";
+import { getStatusColor } from "@/helpers";
 import { useAuthStore } from "@/store/authStore";
 
 // Use the same Order type defined in the CheckoutPage
@@ -141,7 +143,12 @@ const OrderConfirmationPage = () => {
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="flex justify-between items-center border-b pb-4 mb-6">
           <h1 className="text-2xl font-bold">Order Confirmation</h1>
-          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+          <div
+            className={clsx(
+              "bg-green-100 px-3 py-1 rounded-full text-sm font-medium",
+              getStatusColor(order.orderStatus)
+            )}
+          >
             {order.orderStatus}
           </div>
         </div>

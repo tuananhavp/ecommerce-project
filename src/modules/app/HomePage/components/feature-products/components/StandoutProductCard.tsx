@@ -29,6 +29,17 @@ const StandoutProductCard = ({
 
   // Calculate the effective price
   const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "bottom-right",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    },
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -38,7 +49,6 @@ const StandoutProductCard = ({
 
     init();
   }, [fetchFavorites]);
-
   const handleAddToCart = async () => {
     const cartItem: CartItem = {
       productID: id,
@@ -50,14 +60,9 @@ const StandoutProductCard = ({
 
     try {
       await addToCart(cartItem);
-      Swal.fire({
-        title: "Added to Cart",
-        text: `${name} has been added to your cart.`,
+      Toast.fire({
         icon: "success",
-        draggable: true,
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
+        title: `Added ${name} to cart`,
       });
     } catch (error) {
       Swal.fire({

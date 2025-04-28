@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { Toaster } from "sonner";
+
 import { useProductStore } from "@/store/productStore";
 
 import Banner from "./components/banner/Banner";
@@ -22,6 +24,7 @@ const Home = () => {
       <Category />
       <TrendingProduct products={products} isLoading={isLoading} />
       <FeatureProduct products={products} isLoading={isLoading} />
+      <Toaster richColors />
       <Guarantee />
     </section>
   );

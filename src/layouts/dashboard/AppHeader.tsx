@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { capitalizeFirstLetter } from "@/helpers";
 
 const AppHeader = () => {
-  const pathName = usePathname().split("/").pop();
+  const pathName = usePathname().split("/")[2];
 
   return (
     <div className="navbar flex flex-wrap items-center bg-layout-primary gap-3 p-4">
       <div className="flex items-center">
-        <a className="btn btn-ghost text-xl">{capitalizeFirstLetter(pathName || "")}</a>
+        <a className="btn btn-ghost text-xl">{capitalizeFirstLetter(pathName || "Dashboard")}</a>
       </div>
 
       <div className="flex-1 min-w-[200px] max-w-md">
@@ -24,44 +24,6 @@ const AppHeader = () => {
           <input type="search" className="grow px-3 bg-transparent outline-none" placeholder="Search" />
         </label>
       </div>
-
-      {/* <div className="flex items-center gap-3 ml-auto">
-        <div className="dropdown dropdown-end">
-          <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-            <div className="indicator">
-              <IoNotificationsOutline className="size-5" />
-              <span className="badge badge-secondary badge-xs indicator-item">8</span>
-            </div>
-          </div>
-          <div tabIndex={0} className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow">
-            <div className="card-body">
-              <span className="text-lg font-bold">8 Items</span>
-              <span className="text-info">Subtotal: $999</span>
-              <div className="card-actions">
-                <button className="btn btn-primary btn-block">View cart</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="dropdown dropdown-end">
-          <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-            <div className="indicator">
-              <LuShoppingCart className="size-5" />
-              <span className="badge badge-secondary badge-xs indicator-item">8</span>
-            </div>
-          </div>
-          <div tabIndex={0} className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow">
-            <div className="card-body">
-              <span className="text-lg font-bold">8 Items</span>
-              <span className="text-info">Subtotal: $999</span>
-              <div className="card-actions">
-                <button className="btn btn-primary btn-block">View cart</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
     </div>
   );
 };

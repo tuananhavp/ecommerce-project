@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import clsx from "clsx";
+import { BsCart2 } from "react-icons/bs";
+import { FiEye } from "react-icons/fi";
 import { IoHeartOutline, IoHeart } from "react-icons/io5";
 import Swal from "sweetalert2";
 
@@ -25,9 +27,25 @@ const ProductCard = ({
   const { addToCart } = useCartStore();
   const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
   const [isFav, setIsFav] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Calculate the effective price
   const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "bottom-right",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    },
+  });
+  // Calculate discount percentage
+  const discountPercentage =
+    oldPrice && newPrice && newPrice < oldPrice ? Math.round(((oldPrice - newPrice) / oldPrice) * 100) : 0;
 
   useEffect(() => {
     fetchFavorites();
@@ -47,16 +65,9 @@ const ProductCard = ({
     try {
       // Add to cart
       await addToCart(cartItem);
-
-      // Show success notification
-      Swal.fire({
-        title: "Added to Cart",
-        text: `${name} has been added to your cart.`,
+      Toast.fire({
         icon: "success",
-        draggable: true,
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
+        title: `Added ${name} to cart`,
       });
     } catch (error) {
       // Show error notification
@@ -110,73 +121,136 @@ const ProductCard = ({
   };
 
   return (
-    <div className="card bg-base-100 shadow-sm flex flex-col h-full hover:shadow-lg relative">
-      <div className="absolute top-2 right-2 z-10">
-        <button onClick={handleToggleFavorite} className="btn btn-circle btn-sm bg-white hover:bg-gray-100">
-          {isFav ? <IoHeart className="size-5 text-red-500" /> : <IoHeartOutline className="size-5 text-gray-600" />}
-        </button>
+    <div
+      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full relative overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ height: "450px" }} // Fixed card height
+    >
+      {/* Badges */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+        {trending && <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">NEW</div>}
+        {discountPercentage > 0 && (
+          <div className="bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+            {discountPercentage}% OFF
+          </div>
+        )}
       </div>
 
-      <Link href={`/product/${id}`} className="flex justify-center">
-        <figure className="pt-4">
-          <Image src={imgUrl[0]} alt={name} className="object-cover" width={177} height={177} />
-        </figure>
-      </Link>
+      {/* Favorite button */}
+      <button
+        onClick={handleToggleFavorite}
+        className="absolute top-3 right-3 z-10 bg-white rounded-full p-1.5 shadow-sm transition-all duration-200 hover:bg-gray-100"
+      >
+        {isFav ? <IoHeart className="text-red-500 text-lg" /> : <IoHeartOutline className="text-gray-600 text-lg" />}
+      </button>
 
-      <div className="card-body flex flex-col flex-1">
-        <Link href={`/product/${id}`} className="flex-1 flex flex-col">
-          <div className="min-h-14">
-            <span className="card-title lg:text-base sm:text-xs text-[10px]">{name}</span>
-          </div>
-
-          <div className="min-h-16 mb-2">
-            {description.length <= 64 ? (
-              <span className="text-gray-primary text-xs">{description}</span>
-            ) : (
-              <span className="text-gray-primary text-xs">{description.slice(0, 64)}...</span>
-            )}
+      {/* Product Image with fixed height */}
+      <div className="relative h-48 flex items-center justify-center pt-4 pb-2 px-4">
+        <Link href={`/product/${id}`} className="w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Image
+              src={imgUrl[0]}
+              alt={name}
+              className={`object-contain transition-transform duration-500 ${isHovered ? "scale-110" : "scale-100"}`}
+              width={180}
+              height={180}
+              style={{ maxHeight: "100%", width: "auto" }}
+            />
           </div>
         </Link>
 
+        {/* Quick action buttons */}
+        <div
+          className={`absolute left-0 right-0 bottom-0 flex justify-center gap-2 transition-all duration-300 ${
+            isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
+        >
+          <Link
+            href={`/product/${id}`}
+            className="bg-white hover:bg-gray-100 p-2 rounded-full shadow-md transition-all"
+            title="View Details"
+          >
+            <FiEye className="text-gray-700" />
+          </Link>
+          <button
+            onClick={handleAddToCart}
+            className={`bg-white hover:bg-gray-100 p-2 rounded-full shadow-md transition-all ${
+              stockQuantity <= 0 ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={stockQuantity <= 0}
+            title={stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
+          >
+            <BsCart2 className="text-gray-700" />
+          </button>
+        </div>
+      </div>
+
+      {/* Product Details with fixed heights */}
+      <div className="p-4 flex flex-col flex-1 justify-between">
+        <div>
+          <Link href={`/product/${id}`} className="block group">
+            <h3 className="font-medium text-gray-800 h-12 line-clamp-2 group-hover:text-purple-600 transition-colors">
+              {name}
+            </h3>
+          </Link>
+
+          <div className="text-gray-500 text-sm h-12 line-clamp-2 mt-2">
+            {description.length <= 64 ? description : `${description.slice(0, 64)}...`}
+          </div>
+        </div>
+
+        {/* Price and actions - at the bottom */}
         <div className="mt-auto">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-2">
+            {newPrice && newPrice > 0 && <span className="text-purple-600 font-bold text-lg">${newPrice}</span>}
             <span
-              className={clsx("text-red-primary font-bold lg:text-xl sm:text-sm text-xs", newPrice == 0 && "hidden")}
-            >
-              ${newPrice}
-            </span>
-            <span
-              className={clsx("text-text-primary lg:text-base sm: text-xs text-[10px]", {
-                "text-red-primary font-bold lg:text-xl sm:text-sm text-xs": newPrice == 0,
-                "line-through": newPrice !== 0,
+              className={clsx("text-gray-500", {
+                "text-purple-600 font-bold text-lg": newPrice === 0,
+                "text-sm line-through": newPrice !== 0,
               })}
             >
               ${oldPrice}
             </span>
           </div>
 
-          <span className="text-sm font-bold text-green-600">IN STOCK</span>
-          <span className="text-gray-secondary text-xs block mb-2">
-            Available only: <strong className="text-sm text-text-primary">{stockQuantity}</strong>
-          </span>
-
-          <div className="card-actions">
-            <button
-              className="btn btn-primary w-full bg-purple-primary"
-              onClick={handleAddToCart}
-              disabled={stockQuantity <= 0}
-            >
-              {stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
-            </button>
+          {/* Stock information */}
+          <div className="flex flex-col mb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                Available: <span className="font-medium">{stockQuantity}</span>
+              </span>
+              {stockQuantity > 0 ? (
+                <span className="text-xs font-medium text-green-600">In Stock</span>
+              ) : (
+                <span className="text-xs font-medium text-red-500">Out of Stock</span>
+              )}
+            </div>
+            {stockQuantity > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                <div
+                  className="bg-green-500 h-1.5 rounded-full"
+                  style={{ width: `${Math.min(100, (stockQuantity / 40) * 100)}%` }}
+                ></div>
+              </div>
+            )}
           </div>
+
+          {/* Add to cart button */}
+          <button
+            className={clsx(
+              "w-full py-2 rounded-md font-medium transition-colors text-sm",
+              stockQuantity <= 0
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-purple-primary hover:bg-purple-700 text-white"
+            )}
+            onClick={handleAddToCart}
+            disabled={stockQuantity <= 0}
+          >
+            {stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
+          </button>
         </div>
       </div>
-
-      {trending && (
-        <div className="rounded-full size-10 text-xs bg-red-600 absolute inset-1.5 flex items-center justify-center text-white animate-wiggle ease-in">
-          New
-        </div>
-      )}
     </div>
   );
 };

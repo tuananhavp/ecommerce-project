@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import Swal from "sweetalert2";
@@ -123,9 +122,6 @@ const CartPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-96 py-36">
         <NotFound title="Your cart is Empty" />
-        <Link href="/" className="btn btn-primary mt-4">
-          Continue Shopping
-        </Link>
       </div>
     );
   }

@@ -17,5 +17,4 @@ export interface CartState {
   removeFromCart: (productID: string) => Promise<void>;
   updateCartItemQuantity: (productID: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
-  getTotalItems: () => number;
 }

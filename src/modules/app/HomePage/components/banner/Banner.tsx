@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import { bannerContent } from "../../constants";
+import { BANNER_CONTENT } from "../../constants";
 
 const Banner = () => {
   return (
@@ -29,14 +29,14 @@ const Banner = () => {
         modules={[Autoplay, Pagination, Navigation]}
         className="mySwiper"
       >
-        {bannerContent.map((item, index) => {
+        {BANNER_CONTENT.map((item, index) => {
           return (
             <>
               <SwiperSlide key={index}>
                 <div className="min-w-full min-h-full relative ">
                   <Image
                     className="w-full h-full object-contain"
-                    src={item.imageUrl}
+                    src={item.image_url}
                     width={1200}
                     height={500}
                     alt=""
@@ -58,10 +58,10 @@ const Banner = () => {
                       <div className="">
                         <div className="flex items-center gap-2 ">
                           <p className="text-red-primary font-bold xl:text-2xl md:text-base sm:text-xs text-[8px]">
-                            {item.discountPrice}
+                            {item.discount_price}
                           </p>
                           <p className="text-heading-primary font-bold line-through xl:text-base md:text-sm sm:text-[9px] text-[6px]">
-                            {item.originalPrice}
+                            {item.original_price}
                           </p>
                         </div>
                         <p className="xl:text-xs text-[7px] text-gray-primary sm:block hidden">

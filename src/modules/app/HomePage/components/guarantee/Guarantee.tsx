@@ -2,16 +2,16 @@ import React from "react";
 
 import Image from "next/image";
 
-import { guaranteeData } from "./constants";
+import { GUARANTEE_DATA } from "../../constants";
 
 const Guarantee = () => {
   return (
     <div className="grid 2xl:grid-cols-4 md:grid-cols-2 gap-8 w-10/12 mx-auto mt-20 mb-32 ">
-      {guaranteeData.map((item, index) => {
+      {GUARANTEE_DATA.map((item, index) => {
         return (
           <div key={index} className="flex gap-6 items-center shadow-md hover:shadow-xl rounded-lg p-5">
             <Image
-              src={item.imgUrl}
+              src={item.image_url}
               alt={`${item.heading} ${index}`}
               width={57}
               height={57}

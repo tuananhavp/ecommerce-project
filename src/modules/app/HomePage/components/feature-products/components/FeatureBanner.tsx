@@ -5,12 +5,12 @@ import Link from "next/link";
 
 import { FaArrowRightLong } from "react-icons/fa6";
 
-import { featureBanner } from "../constants";
+import { FEATURE_BANNER } from "../../../constants";
 
 const FeatureBanner = () => {
   return (
     <div className="flex w-full flex-col gap-6 lg:flex-row ">
-      {featureBanner.map((item, index) => {
+      {FEATURE_BANNER.map((item, index) => {
         const [firstPart, secondPart] = item.title.split(" ").reduce(
           (acc, word, idx) => {
             if (idx < 3) acc[0] += ` ${word}`;

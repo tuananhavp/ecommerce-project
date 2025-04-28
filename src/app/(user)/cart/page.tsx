@@ -1,6 +1,6 @@
 import React from "react";
 
-import CartPage from "@/modules/app/Cart";
+import CartPage from "@/modules/app/CartPage";
 
 const page = () => {
   return (

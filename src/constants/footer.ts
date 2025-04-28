@@ -1,4 +1,4 @@
-export const footerSections = [
+export const FOOTER_SECTIONS = [
   {
     heading: "Make Money with Us",
     navigations: [
@@ -97,7 +97,7 @@ export const footerSections = [
   },
 ];
 
-export const footerLegalLinks = [
+export const FOOTER_LEGAL_LINKS = [
   {
     name: "Term and Conditions",
     href: "/",
@@ -112,4 +112,4 @@ export const footerLegalLinks = [
   },
 ];
 
-export const paymentMethodIcons = ["/inter.png", "/visa.png", "/skrill.png", "/paypal.png", "/klama.png"];
+export const PAYMENT_METHOD_ICONS = ["/inter.png", "/visa.png", "/skrill.png", "/paypal.png", "/klama.png"];

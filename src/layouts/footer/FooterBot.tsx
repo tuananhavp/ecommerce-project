@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { footerLegalLinks, paymentMethodIcons } from "../../constants/footer";
+import { FOOTER_LEGAL_LINKS, PAYMENT_METHOD_ICONS } from "../../constants/footer";
 
 const FooterBot = () => {
   return (
@@ -12,7 +12,7 @@ const FooterBot = () => {
           <span className="ml-1 text-purple-600">BlackRise Themes</span>.
         </p>
         <div className="flex gap-2 items-center mt-3">
-          {paymentMethodIcons.map((icon, index) => {
+          {PAYMENT_METHOD_ICONS.map((icon, index) => {
             return (
               <Image key={index} className="sm:size-8 size-6 object-contain" src={icon} width={32} height={32} alt="" />
             );
@@ -20,7 +20,7 @@ const FooterBot = () => {
         </div>
       </div>
       <div className="flex sm:flex-row flex-col gap-3">
-        {footerLegalLinks.map((link, index) => {
+        {FOOTER_LEGAL_LINKS.map((link, index) => {
           return (
             <Link
               key={index}

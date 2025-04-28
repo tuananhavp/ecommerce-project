@@ -19,13 +19,13 @@ const HeaderAction = () => {
   ];
 
   const { user, logout } = useAuthStore((state) => state);
-  const { fetchCart, getTotalItems } = useCartStore();
+  const { fetchCart, items } = useCartStore();
   const { fetchFavorites, favorites } = useFavoriteStore();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
 
-  const totalCartItems = getTotalItems();
+  const totalCartItems = items.length;
   const totalFavorites = favorites.length;
 
   useEffect(() => {
@@ -46,11 +46,7 @@ const HeaderAction = () => {
   }, [user]);
 
   const handleLogout = async () => {
-    await logout();
-    setTimeout(() => {
-      fetchCart();
-      fetchFavorites();
-    }, 300);
+    logout();
     router.push("/login");
   };
 

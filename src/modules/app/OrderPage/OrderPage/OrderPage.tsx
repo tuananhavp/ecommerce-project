@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Timestamp } from "firebase/firestore";
 
+import { getStatusColor } from "@/helpers";
 import { useAuthStore } from "@/store/authStore";
 import { useOrderStore } from "@/store/orderStore";
 
@@ -50,25 +51,6 @@ const OrdersPage = () => {
       </div>
     );
   }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "In Process":
-        return "bg-blue-100 text-blue-800";
-      case "Shipping":
-        return "bg-purple-100 text-purple-800";
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      case "Cancelled":
-        return "bg-red-100 text-red-800";
-      case "Refunded":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   return (
     <div className="container mx-auto py-8 px-4">

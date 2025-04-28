@@ -102,7 +102,8 @@ const OrderDetail = () => {
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#4F46E5",
-        cancelButtonColor: "#d33",
+        cancelButtonColor: "gray",
+        cancelButtonText: "No, keep it!",
         confirmButtonText: "Yes, update it!",
       });
 

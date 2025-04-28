@@ -5,8 +5,8 @@ import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import Swal from "sweetalert2";
+import { z } from "zod";
 
 import Checkbox from "@/components/Checkbox";
 import InputField from "@/components/InputField";
