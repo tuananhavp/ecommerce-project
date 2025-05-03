@@ -18,7 +18,7 @@ export const BANNER_CONTENT = [
 export const CATEGORIES = [
   { name: "vegetables", image_url: "/category-1.png" },
   { name: "beverages", image_url: "/category-3.png" },
-  { name: "biscuits & snacks", image_url: "/category-5.png" },
+  { name: "snacks", image_url: "/category-5.png" },
   { name: "frozen foods", image_url: "/category-8.png" },
   { name: "grocery", image_url: "/category-9.png" },
 ];

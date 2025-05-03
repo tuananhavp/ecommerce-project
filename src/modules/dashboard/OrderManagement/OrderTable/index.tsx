@@ -3,25 +3,15 @@ import React, { useState, useEffect } from "react";
 
 import Link from "next/link";
 
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  updateDoc,
-  doc,
-  FieldValue,
-  Timestamp,
-  serverTimestamp,
-} from "firebase/firestore";
-import { FaEye, FaSpinner } from "react-icons/fa";
+import { Timestamp, serverTimestamp, FieldValue } from "firebase/firestore";
+import { FaEye, FaSpinner, FaLock } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { MdCheckCircle, MdLocalShipping, MdCancel } from "react-icons/md";
 import { RiFileListLine } from "react-icons/ri";
 import Swal from "sweetalert2";
 
 import Loading from "@/components/Loading";
-import { db } from "@/firebase/firebase";
+import { useOrderStore } from "@/store/orderStore";
 import { Order, OrderStatus } from "@/types/order.types";
 
 // Define filter options
@@ -60,44 +50,20 @@ const statusIcons = {
   Refunded: <MdCancel className="mr-1" />,
 };
 
+// Admin view component - shows all orders
 const OrdersTable = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  // Get orders and methods from OrderStore
+  const { orders, isLoading, error, fetchOrders, updateOrderStatus } = useOrderStore();
+
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
-  // Fetch orders
+  // Fetch all orders (admin view) - no customerId filter
   useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const ordersRef = collection(db, "orders");
-        const ordersQuery = query(ordersRef, orderBy("createdAt", "desc"));
-
-        const querySnapshot = await getDocs(ordersQuery);
-        const ordersData = querySnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        })) as Order[];
-
-        setOrders(ordersData);
-        setFilteredOrders(ordersData);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to load orders",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   // Apply filters
   useEffect(() => {
@@ -139,8 +105,18 @@ const OrdersTable = () => {
     setFilteredOrders(result);
   }, [orders, statusFilter, searchTerm, dateRange]);
 
-  // Handle status change
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  // Handle status change using the store
+  const handleStatusChange = async (orderId: string, currentStatus: OrderStatus, newStatus: OrderStatus) => {
+    // Check if the order is already completed, if so, don't allow changes
+    if (currentStatus === "Completed") {
+      Swal.fire({
+        icon: "info",
+        title: "Status Locked",
+        text: "This order is already completed and its status cannot be changed.",
+      });
+      return;
+    }
+
     try {
       // Show confirmation dialog
       const result = await Swal.fire({
@@ -155,18 +131,18 @@ const OrdersTable = () => {
       });
 
       if (result.isConfirmed) {
-        // Update in Firestore
-        const orderRef = doc(db, "orders", orderId);
-        await updateDoc(orderRef, {
-          orderStatus: newStatus,
-        });
+        // Use OrderStore to update status
+        const success = await updateOrderStatus(orderId, newStatus);
 
-        // Update local state
-        setOrders((prevOrders) =>
-          prevOrders.map((order) => (order.id === orderId ? { ...order, orderStatus: newStatus } : order))
-        );
-
-        Swal.fire("Updated!", "Order status has been updated successfully.", "success");
+        if (success) {
+          Swal.fire("Updated!", "Order status has been updated successfully.", "success");
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to update order status",
+          });
+        }
       }
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -179,7 +155,7 @@ const OrdersTable = () => {
   };
 
   // Format date
-  const formatDate = (timestamp: Timestamp | FieldValue | null | undefined) => {
+  const formatDate = (timestamp: Timestamp | FieldValue | Date | null | undefined) => {
     if (!timestamp) return "N/A";
 
     try {
@@ -199,12 +175,36 @@ const OrdersTable = () => {
         });
       }
 
+      // For JavaScript Date objects
+      if (timestamp instanceof Date) {
+        return timestamp.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
       return "Invalid date";
     } catch (error) {
       console.error("Error formatting date:", error);
       return "Invalid date";
     }
   };
+
+  // Show error message if OrderStore reports an error
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="alert alert-error">
+          <div className="flex-1">
+            <span>Error loading orders: {error}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -320,6 +320,7 @@ const OrdersTable = () => {
                     >
                       {statusIcons[order.orderStatus]}
                       {order.orderStatus}
+                      {order.orderStatus === "Completed" && <FaLock className="ml-1 text-xs" />}
                     </span>
                   </td>
                   <td className="hidden md:table-cell">
@@ -331,28 +332,41 @@ const OrdersTable = () => {
                         <FaEye className="text-blue-600" />
                       </Link>
 
-                      <div className="dropdown dropdown-bottom">
-                        <label tabIndex={0} className="btn btn-ghost btn-xs">
-                          Status
-                          <IoMdArrowDropdown />
-                        </label>
-
-                        <ul
-                          tabIndex={0}
-                          className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40"
+                      {order.orderStatus === "Completed" ? (
+                        <button
+                          className="btn btn-ghost btn-xs opacity-50 cursor-not-allowed flex items-center gap-1"
+                          disabled
+                          title="Completed orders cannot be modified"
                         >
-                          {Object.keys(statusColors).map((status) => (
-                            <li key={status}>
-                              <button
-                                onClick={() => handleStatusChange(order.id as string, status as OrderStatus)}
-                                disabled={order.orderStatus === status}
-                              >
-                                {status}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                          <FaLock className="text-xs" />
+                          Locked
+                        </button>
+                      ) : (
+                        <div className="dropdown dropdown-bottom border-2 border-gray-200 rounded-lg">
+                          <label tabIndex={0} className="btn btn-ghost btn-xs">
+                            Status
+                            <IoMdArrowDropdown />
+                          </label>
+
+                          <ul
+                            tabIndex={0}
+                            className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40"
+                          >
+                            {Object.keys(statusColors).map((status) => (
+                              <li key={status}>
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(order.id as string, order.orderStatus, status as OrderStatus)
+                                  }
+                                  disabled={order.orderStatus === status}
+                                >
+                                  {status}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>

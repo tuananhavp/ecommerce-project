@@ -159,7 +159,7 @@ const ProductTable = () => {
   const categoryColorMap: Record<string, string> = {
     Vegetables: "bg-green-500",
     Beverages: "bg-blue-500",
-    "Biscuits & Snacks": "bg-amber-500",
+    Snacks: "bg-amber-500",
     Grocery: "bg-red-500",
     "Frozen Foods": "bg-cyan-500",
   };

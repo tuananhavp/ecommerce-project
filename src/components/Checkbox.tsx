@@ -20,6 +20,7 @@ const Checkbox = <T extends FieldValues>({
   inputClassName,
   labelClassName,
   register,
+  ...rest
 }: CheckboxProps<T>) => {
   return (
     <>
@@ -30,6 +31,7 @@ const Checkbox = <T extends FieldValues>({
           value={value}
           checked={checked}
           {...register(name)}
+          {...rest}
         />
         {title}
       </label>

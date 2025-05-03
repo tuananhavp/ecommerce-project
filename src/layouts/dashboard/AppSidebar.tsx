@@ -14,7 +14,6 @@ const AppSidebar = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(true);
 
   const pathName = usePathname().split("/").slice(2)[0] || "";
-  console.log(pathName);
   useEffect(() => {
     const handleResize = () => {
       const isLarge = window.innerWidth >= 1024;

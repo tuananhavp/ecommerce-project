@@ -5,6 +5,16 @@ import AppHeader from "./dashboard/AppHeader";
 import AppSidebar from "./dashboard/AppSidebar";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  // const { isLoading, user, initialize } = useAuthStore();
+  // const router = useRouter();
+  // console.log(user);
+  // useEffect(() => {
+  //   initialize();
+  //   if (user?.role === "customer") {
+  //     router.push("/");
+  //   }
+  // }, [user, router, initialize]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-layout-primary font-dashboard">
       <AppSidebar />

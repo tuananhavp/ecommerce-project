@@ -5,12 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-import { doc, FieldValue, getDoc, serverTimestamp, Timestamp, updateDoc } from "firebase/firestore";
-import { FaArrowLeft, FaSpinner } from "react-icons/fa";
+import { FieldValue, serverTimestamp, Timestamp } from "firebase/firestore";
+import { FaArrowLeft, FaExclamationTriangle, FaLock, FaSpinner } from "react-icons/fa";
 import Swal from "sweetalert2";
 
-import { db } from "@/firebase/firebase";
-import { Order, OrderStatus } from "@/store/orderStore";
+import { useOrderStore } from "@/store/orderStore";
+import { OrderStatus } from "@/types/order.types";
 
 // Status color mapping (same as in OrdersTable)
 const statusColors = {
@@ -26,44 +26,42 @@ const OrderDetail = () => {
   const params = useParams();
   const router = useRouter();
   const orderId = params.id as string;
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // Get state and methods from OrderStore
+  const { currentOrder, isLoading, error, getOrderById, updateOrderStatus } = useOrderStore();
   const [processing, setProcessing] = useState(false);
 
-  // Fetch order details
+  // Fetch order details using the store
   useEffect(() => {
-    const fetchOrderDetails = async () => {
-      try {
-        const orderRef = doc(db, "orders", orderId);
-        const orderSnap = await getDoc(orderRef);
+    const fetchOrder = async () => {
+      const result = await getOrderById(orderId);
 
-        if (orderSnap.exists()) {
-          setOrder({ ...orderSnap.data(), id: orderSnap.id } as Order);
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Order not found",
-          });
-          router.push("/dashboard/order");
-        }
-      } catch (error) {
-        console.error("Error fetching order:", error);
+      if (!result) {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Failed to load order details",
+          text: "Order not found",
         });
-      } finally {
-        setLoading(false);
+        router.push("/dashboard/order");
       }
     };
 
-    fetchOrderDetails();
-  }, [orderId, router]);
+    fetchOrder();
+  }, [orderId, router, getOrderById]);
+
+  // Show error if there's any
+  useEffect(() => {
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error,
+      });
+    }
+  }, [error]);
 
   // Format date
-  const formatDate = (timestamp: Timestamp | FieldValue | null | undefined) => {
+  const formatDate = (timestamp: Timestamp | FieldValue | Date | null | undefined) => {
     if (!timestamp) return "N/A";
 
     try {
@@ -83,6 +81,17 @@ const OrderDetail = () => {
         });
       }
 
+      // For JavaScript Date objects
+      if (timestamp instanceof Date) {
+        return timestamp.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
       return "Invalid date";
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -90,8 +99,20 @@ const OrderDetail = () => {
     }
   };
 
-  // Handle status change
+  // Handle status change using the store
   const handleStatusChange = async (newStatus: OrderStatus) => {
+    if (!currentOrder) return;
+
+    // Check if order is already completed, if so, don't allow changes
+    if (currentOrder.orderStatus === "Completed") {
+      Swal.fire({
+        icon: "info",
+        title: "Status Locked",
+        text: "This order is already completed and its status cannot be changed.",
+      });
+      return;
+    }
+
     try {
       setProcessing(true);
 
@@ -108,16 +129,14 @@ const OrderDetail = () => {
       });
 
       if (result.isConfirmed) {
-        // Update in Firestore
-        const orderRef = doc(db, "orders", orderId);
-        await updateDoc(orderRef, {
-          orderStatus: newStatus,
-        });
+        // Update order status using OrderStore
+        const success = await updateOrderStatus(orderId, newStatus);
 
-        // Update local state
-        setOrder((order) => (order ? { ...order, orderStatus: newStatus } : null));
-
-        Swal.fire("Updated!", "Order status has been updated successfully.", "success");
+        if (success) {
+          Swal.fire("Updated!", "Order status has been updated successfully.", "success");
+        } else {
+          throw new Error("Failed to update order status");
+        }
       }
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -131,7 +150,7 @@ const OrderDetail = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-96">
         <FaSpinner className="animate-spin h-8 w-8 text-purple-600" />
@@ -139,7 +158,7 @@ const OrderDetail = () => {
     );
   }
 
-  if (!order) {
+  if (!currentOrder) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 text-lg">Order not found</p>
@@ -149,6 +168,13 @@ const OrderDetail = () => {
       </div>
     );
   }
+
+  // For simplicity, use order alias for currentOrder
+  const order = currentOrder;
+  // Check if the order status is completed (for conditional rendering)
+  const isCompleted = order.orderStatus === "Completed";
+  // Check if the order is cancelled
+  const isCancelled = order.orderStatus === "Cancelled";
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -173,30 +199,59 @@ const OrderDetail = () => {
             }`}
           >
             {order.orderStatus}
+            {isCompleted && <FaLock className="ml-1 text-xs" />}
           </span>
 
           <div className="mt-3">
-            <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="btn btn-primary btn-sm">
-                {processing ? <FaSpinner className="animate-spin mr-2" /> : null}
-                Update Status
-              </label>
-              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
-                {Object.keys(statusColors).map((status) => (
-                  <li key={status}>
-                    <button
-                      onClick={() => handleStatusChange(status as OrderStatus)}
-                      disabled={order.orderStatus === status}
-                    >
-                      {status}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {isCompleted ? (
+              // If completed, show a disabled button
+              <button className="btn btn-primary btn-sm opacity-50 cursor-not-allowed flex items-center gap-1" disabled>
+                <FaLock className="text-xs" /> Status Locked
+              </button>
+            ) : (
+              // If not completed, show the dropdown
+              <div className="dropdown dropdown-end">
+                <label tabIndex={0} className="btn btn-primary btn-sm">
+                  {processing ? <FaSpinner className="animate-spin mr-2" /> : null}
+                  Update Status
+                </label>
+                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
+                  {Object.keys(statusColors).map((status) => (
+                    <li key={status}>
+                      <button
+                        onClick={() => handleStatusChange(status as OrderStatus)}
+                        disabled={order.orderStatus === status}
+                      >
+                        {status}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Cancellation Reason Section - Only show for cancelled orders */}
+      {isCancelled && order.cancellationReason && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 mt-1">
+              <FaExclamationTriangle className="text-red-500 text-lg" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-red-800">Cancellation Reason</h3>
+              <div className="mt-2 text-red-700">
+                <p>{order.cancellationReason}</p>
+              </div>
+              {order.cancelledAt && (
+                <p className="mt-1 text-sm text-red-500">Cancelled on: {formatDate(order.cancelledAt)}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Customer Information */}
@@ -333,30 +388,39 @@ const OrderDetail = () => {
         <Link href="/dashboard/order" className="btn btn-outline">
           Back to Orders
         </Link>
-        <div className="space-x-2">
-          <button
-            className="btn btn-outline btn-error"
-            disabled={["Cancelled", "Refunded"].includes(order.orderStatus)}
-            onClick={() => handleStatusChange("Cancelled")}
-          >
-            Cancel Order
-          </button>
-          {order.orderStatus === "Pending" && (
-            <button className="btn btn-primary" onClick={() => handleStatusChange("In Process")}>
-              Process Order
+        {!isCompleted ? (
+          <div className="space-x-2">
+            <button
+              className="btn btn-outline btn-error"
+              disabled={["Cancelled", "Refunded"].includes(order.orderStatus)}
+              onClick={() => handleStatusChange("Cancelled")}
+            >
+              Cancel Order
             </button>
-          )}
-          {order.orderStatus === "In Process" && (
-            <button className="btn btn-primary" onClick={() => handleStatusChange("Shipping")}>
-              Mark as Shipped
-            </button>
-          )}
-          {order.orderStatus === "Shipping" && (
-            <button className="btn btn-success" onClick={() => handleStatusChange("Completed")}>
-              Mark as Delivered
-            </button>
-          )}
-        </div>
+            {order.orderStatus === "Pending" && (
+              <button className="btn btn-primary" onClick={() => handleStatusChange("In Process")}>
+                Process Order
+              </button>
+            )}
+            {order.orderStatus === "In Process" && (
+              <button className="btn btn-primary" onClick={() => handleStatusChange("Shipping")}>
+                Mark as Shipped
+              </button>
+            )}
+            {order.orderStatus === "Shipping" && (
+              <button className="btn btn-success" onClick={() => handleStatusChange("Completed")}>
+                Mark as Delivered
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <span className="text-green-600 mr-2">
+              <FaLock />
+            </span>
+            <span className="text-gray-600">This order is completed and cannot be modified</span>
+          </div>
+        )}
       </div>
     </div>
   );

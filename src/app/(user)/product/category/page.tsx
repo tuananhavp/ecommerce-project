@@ -1,11 +1,11 @@
 import React from "react";
 
-import AdminManagement from "@/modules/dashboard/UserManagement/AdminPage";
+import ProductCategoryPage from "@/modules/app/ProductListPage";
 
 const page = () => {
   return (
     <>
-      <AdminManagement />
+      <ProductCategoryPage />
     </>
   );
 };

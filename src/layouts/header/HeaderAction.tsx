@@ -5,20 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { CgProfile } from "react-icons/cg";
 import { IoLocationOutline, IoSearchOutline, IoHeartOutline, IoCartOutline, IoMenuSharp } from "react-icons/io5";
 
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useFavoriteStore } from "@/store/favouriteStore";
 
-const HeaderAction = () => {
-  const userDropdown = [
-    { name: "Check Out", link: "/checkout" },
-    { name: "Order Tracking", link: "/orders" },
-  ];
+import { UserProfileDropdown } from "./HeaderDropDown";
 
-  const { user, logout } = useAuthStore((state) => state);
+const HeaderAction = () => {
+  const { user, logout, initialize } = useAuthStore((state) => state);
   const { fetchCart, items } = useCartStore();
   const { fetchFavorites, favorites } = useFavoriteStore();
   const router = useRouter();
@@ -45,6 +41,12 @@ const HeaderAction = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    initialize();
+    return () => {
+      initialize();
+    };
+  }, [initialize]);
   const handleLogout = async () => {
     logout();
     router.push("/login");
@@ -94,35 +96,9 @@ const HeaderAction = () => {
           )}
         </Link>
         <div>
-          {
-            <>
-              <details className="dropdown">
-                <summary className="btn m-1">
-                  <CgProfile className="md:size-8 size-4 hover:opacity-60" />
-                </summary>
-                <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-32 p-2  text-xs shadow-md">
-                  {user ? (
-                    <>
-                      <li>
-                        <button onClick={() => handleLogout()}>Log Out</button>
-                      </li>
-                      {userDropdown.map((item, index) => {
-                        return (
-                          <li key={index}>
-                            <Link href={item.link}>{item.name}</Link>
-                          </li>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <li>
-                      <Link href={"/login"}>Sign in</Link>
-                    </li>
-                  )}
-                </ul>
-              </details>
-            </>
-          }
+          <div>
+            <UserProfileDropdown user={user} handleLogout={handleLogout} />
+          </div>
         </div>
       </div>
 

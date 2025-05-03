@@ -40,7 +40,7 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
             New products with updated stocks.
           </span>
         </div>
-        <Link href={"/"} className="border-2 border-gray-100 rounded-2xl p-3 hover:text-gray-500 ">
+        <Link href={"/product/category"} className="border-2 border-gray-100 rounded-2xl p-3 hover:text-gray-500 ">
           <div className="flex items-center gap-2">
             <span className="font-bold text[#212529] sm:text-sm text-[10px] ">View All</span>
             <FaArrowRight />

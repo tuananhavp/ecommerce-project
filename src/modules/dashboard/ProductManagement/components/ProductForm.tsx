@@ -109,7 +109,6 @@ const ProductForm = () => {
         ...data,
         imgUrl: imageUrls,
       };
-      console.log(productData);
 
       await createProduct(productData);
 

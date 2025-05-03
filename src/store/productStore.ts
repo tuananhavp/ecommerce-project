@@ -63,10 +63,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
         rating: null,
       },
     }));
-    get().getAllProduct(); // Reset to fetch all products
+    get().getAllProduct();
   },
-
-  // In your useProductStore.js file, update the applyFilters function:
 
   applyFilters: async () => {
     try {
@@ -75,9 +73,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const { filters } = get();
       let q = query(collection(db, "product"));
 
-      // Handle category filtering - making sure to match the case in Firebase
       if (filters.category) {
-        // Category filter is applied with the correctly cased value
         q = query(q, where("category", "==", filters.category));
       }
 

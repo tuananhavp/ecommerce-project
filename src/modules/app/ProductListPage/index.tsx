@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Loading from "@/components/Loading";
+import { capitalizeFirstLetter } from "@/helpers";
 import { useProductStore } from "@/store/productStore";
 
 import FilterSidebar from "./components/FillterSidebar";
@@ -12,21 +13,22 @@ import ProductList from "./components/ProductList";
 
 const ProductCategoryPage = () => {
   const { slug } = useParams();
-  const { setCategory, applyFilters, products, isLoading, error } = useProductStore();
-
-  // Function to capitalize first letter for Firebase query
-  const capitalizeFirstLetter = (string: string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
+  const { setCategory, applyFilters, products, isLoading, error, getAllProduct, clearFilters } = useProductStore();
 
   useEffect(() => {
+    clearFilters();
     if (slug) {
-      // Convert the slug to match the format in Firebase (first letter capitalized)
       const categoryName = capitalizeFirstLetter(slug.toString());
       setCategory(categoryName);
       applyFilters();
+
+      return () => {
+        clearFilters();
+      };
+    } else {
+      getAllProduct();
     }
-  }, [slug, setCategory, applyFilters]);
+  }, [slug, setCategory, applyFilters, getAllProduct, clearFilters]);
 
   if (isLoading) {
     return (

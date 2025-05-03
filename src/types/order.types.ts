@@ -1,7 +1,14 @@
-import { FieldValue } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
 import { z, string } from "zod";
 
 export type OrderStatus = "Pending" | "In Process" | "Shipping" | "Completed" | "Cancelled" | "Refunded";
+
+export type Address = {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
 
 export type OrderItem = {
   productID: string;
@@ -12,45 +19,57 @@ export type OrderItem = {
   subtotal: number;
 };
 
-export type Address = {
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-};
-
 export type Order = {
   id?: string;
   customerID: string;
   customerName: string;
   email: string;
   phone: string;
-  createdAt: FieldValue;
-  deliveryAddress: Address;
+  createdAt: FieldValue | Timestamp | Date;
+  cancelledAt?: FieldValue | Timestamp | Date; // New field for when order was cancelled
+  cancellationReason?: string; // New field for cancellation reason
+  deliveryAddress: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
   orderStatus: OrderStatus;
   orderItems: OrderItem[];
   totalAmount: number;
   shippingMethod: string;
   shippingCost: number;
-  trackingNumber?: string;
   paymentMethod: "COD" | "Card" | "Paypal";
   notes?: string;
+  trackingNumber?: string;
+  updatedAt?: FieldValue | Timestamp | Date;
 };
 
-// This type will be used for the input data when creating a new order
-export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID">;
+export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID" | "updatedAt">;
+
+// Interface for order counts cache
+export interface OrderCountsCache {
+  [userId: string]: {
+    count: number;
+    timestamp: number; // Cache timestamp for expiration
+  };
+}
 
 export interface OrderState {
   orders: Order[];
   currentOrder: Order | null;
   isLoading: boolean;
   error: string | null;
+  orderCounts: OrderCountsCache; // Added for caching order counts
 
-  fetchUserOrders: () => Promise<void>;
+  fetchOrders: (customerId?: string) => Promise<Order[]>;
   getOrderById: (orderId: string) => Promise<Order | null>;
-  createOrder: (orderData: CreateOrderInput) => Promise<string | null>;
+  createOrder: (orderData: CreateOrderInput, customerId: string) => Promise<string | null>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
-  cancelOrder: (orderId: string) => Promise<boolean>;
+  cancelOrder: (orderId: string, cancellationReason: string) => Promise<boolean>;
+  updateProductStock: (order: Order, oldStatus: OrderStatus, newStatus: OrderStatus) => Promise<boolean | void>;
+  getTotalOrdersByUserId: (userId: string) => Promise<number>; // Added new function
+  clearOrderCountCache: () => void; // Added function to clear cache
 }
 
 export const OrderFormSchema = z.object({

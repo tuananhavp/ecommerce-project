@@ -1,5 +1,14 @@
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, getDoc, doc, setDoc, query, where, getDocs } from "firebase/firestore";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateEmail,
+  reauthenticateWithCredential,
+  updatePassword,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { collection, getDoc, doc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { create } from "zustand";
 
 import { auth, db } from "@/firebase/firebase";
@@ -22,7 +31,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           if (userDoc.exists()) {
             const userData = userDoc.data() as UserProfile;
             set({
-              user: { ...userData, uid: firebaseUser.uid },
+              user: { ...userData, ...firebaseUser },
               isAuthenticated: true,
               isLoading: false,
             });
@@ -60,15 +69,14 @@ export const useAuthStore = create<AuthState>((set) => ({
           }, 500);
           const userData = userDoc.data() as UserProfile;
           set({
-            user: { ...userData, uid: userCredential.user.uid },
+            user: { ...userData, ...userCredential.user },
             isAuthenticated: true,
             isLoading: false,
           });
+          localStorage.setItem("user", JSON.stringify({ ...userCredential.user, ...userData }));
         } else {
           set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
         }
-
-        localStorage.setItem("user", JSON.stringify(userCredential.user));
       } else {
         set({ error: "Email or password is wrong. Please try again", isLoading: false });
       }
@@ -96,7 +104,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         await setDoc(doc(db, "users", userCredential.user.uid), userProfile);
 
         set({
-          user: { ...userProfile, uid: userCredential.user.uid },
+          user: { ...userProfile, ...userCredential.user },
           isAuthenticated: true,
           isLoading: false,
         });
@@ -117,6 +125,79 @@ export const useAuthStore = create<AuthState>((set) => ({
       useFavoriteStore.setState({ favorites: [] });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+  // In your updateProfile function in authStore.ts, add this to handle addresses
+
+  updateProfile: async (userData, currentPassword = null) => {
+    set({ isLoading: true, error: null });
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No authenticated user found");
+      }
+
+      const { username, email, password, phone, addresses } = userData;
+
+      // Get the existing user data
+      const userRef = doc(db, "users", currentUser.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        throw new Error("User profile not found");
+      }
+
+      let updatedUserData: Partial<UserProfile> = {};
+
+      // Update basic profile info in Firestore
+      updatedUserData = {
+        ...(username && { username }),
+        ...(phone && { phone }),
+        ...(addresses && { addresses }),
+      };
+
+      // Update email and password if provided (requires reauthentication)
+      if ((email && email !== currentUser.email) || password) {
+        // Reauthenticate the user if currentPassword is provided
+        if (currentPassword) {
+          const credential = EmailAuthProvider.credential(currentUser.email!, currentPassword);
+          await reauthenticateWithCredential(currentUser, credential);
+
+          // Update email if it's changed
+          if (email && email !== currentUser.email) {
+            await updateEmail(currentUser, email);
+            updatedUserData.email = email;
+          }
+
+          // Update password if provided
+          if (password) {
+            await updatePassword(currentUser, password);
+            updatedUserData.password = password;
+          }
+        } else {
+          throw new Error("Current password is required to update email or password");
+        }
+      }
+
+      // Update Firestore document
+      if (Object.keys(updatedUserData).length > 0) {
+        await updateDoc(userRef, updatedUserData);
+      }
+
+      // Refresh user data
+      const updatedUserDoc = await getDoc(userRef);
+      const updatedUserProfile = updatedUserDoc.data() as UserProfile;
+
+      set({
+        user: { ...updatedUserProfile, ...currentUser },
+        isLoading: false,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      set({ error: (error as Error).message, isLoading: false });
+      return false;
     }
   },
 }));

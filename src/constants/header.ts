@@ -56,3 +56,22 @@ export const LOCALE_SETTINGS = [
     options: ["EUR", "CNY", "CAD"],
   },
 ];
+
+export const navigationItems = {
+  customer: [
+    { name: "Profile", link: "/profile" },
+    { name: "Check Out", link: "/checkout" },
+    { name: "Order Tracking", link: "/orders" },
+  ],
+  admin: [
+    { name: "Dashboard", link: "/dashboard" },
+    { name: "Products", link: "/dashboard/product" },
+    { name: "Orders", link: "/dashboard/order" },
+    { name: "Users", link: "/dashboard/user" },
+    { name: "Profile", link: "/profile" },
+  ],
+  guest: [
+    { name: "Login", link: "/login" },
+    { name: "Register", link: "/login" },
+  ],
+};

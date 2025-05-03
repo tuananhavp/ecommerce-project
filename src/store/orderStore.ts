@@ -9,88 +9,40 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  FieldValue,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 import { create } from "zustand";
 
 import { db } from "@/firebase/firebase";
+import { CreateOrderInput, Order, OrderState, OrderStatus } from "@/types/order.types";
 
-import { useAuthStore } from "./authStore";
 import { useCartStore } from "./cartStore";
-
-export type OrderStatus = "Pending" | "In Process" | "Shipping" | "Completed" | "Cancelled" | "Refunded";
-
-export type OrderItem = {
-  productID: string;
-  productName: string;
-  productImage: string;
-  quantity: number;
-  pricePerUnit: number;
-  subtotal: number;
-};
-
-export type Address = {
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-};
-
-export type Order = {
-  id?: string;
-  customerID: string;
-  customerName: string;
-  email: string;
-  phone: string;
-  createdAt: Timestamp | FieldValue;
-  deliveryAddress: Address;
-  orderStatus: OrderStatus;
-  orderItems: OrderItem[];
-  totalAmount: number;
-  shippingMethod: string;
-  shippingCost: number;
-  trackingNumber?: string;
-  paymentMethod: "COD" | "Card" | "Paypal";
-  notes?: string;
-  updatedAt?: Timestamp | FieldValue;
-};
-
-export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID" | "updatedAt">;
-
-interface OrderState {
-  orders: Order[];
-  currentOrder: Order | null;
-  isLoading: boolean;
-  error: string | null;
-
-  fetchUserOrders: () => Promise<void>;
-  getOrderById: (orderId: string) => Promise<Order | null>;
-  createOrder: (orderData: CreateOrderInput) => Promise<string | null>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
-  cancelOrder: (orderId: string) => Promise<boolean>;
-}
 
 export const useOrderStore = create<OrderState>((set, get) => ({
   orders: [],
   currentOrder: null,
   isLoading: false,
   error: null,
+  orderCounts: {}, // Initialize empty cache object
 
-  fetchUserOrders: async () => {
-    const { user } = useAuthStore.getState();
-    if (!user?.uid) {
-      set({ error: "You must be logged in to view orders", isLoading: false });
-      return;
-    }
-
+  // Fetch all orders (for admin) or filter by customerId if provided
+  fetchOrders: async (customerId?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const ordersQuery = query(
-        collection(db, "orders"),
-        where("customerID", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
+      let ordersQuery;
+
+      if (customerId) {
+        // If customerId is provided, filter by customer
+        ordersQuery = query(
+          collection(db, "orders"),
+          where("customerID", "==", customerId),
+          orderBy("createdAt", "desc")
+        );
+      } else {
+        // Fetch all orders (admin view)
+        ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+      }
 
       const ordersSnapshot = await getDocs(ordersQuery);
       const ordersData = ordersSnapshot.docs.map(
@@ -105,9 +57,12 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         orders: ordersData,
         isLoading: false,
       });
+
+      return ordersData;
     } catch (error) {
       console.error("Error fetching orders:", error);
       set({ error: (error as Error).message, isLoading: false });
+      return [];
     }
   },
 
@@ -137,19 +92,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  createOrder: async (orderData: CreateOrderInput) => {
-    const { user } = useAuthStore.getState();
-    if (!user?.uid) {
-      set({ error: "You must be logged in to create an order", isLoading: false });
-      return null;
-    }
-
+  createOrder: async (orderData: CreateOrderInput, customerId: string) => {
     set({ isLoading: true, error: null });
     try {
       // Create the order object with required fields
       const newOrder = {
         ...orderData,
-        customerID: user.uid,
+        customerID: customerId,
         createdAt: serverTimestamp(),
         orderStatus: "Pending" as const,
       };
@@ -174,6 +123,15 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         isLoading: false,
       }));
 
+      // Clear the order count cache for this user as it's now invalid
+      const { orderCounts } = get();
+      // Create a new object without the customer's entry instead of setting it to undefined
+      const newOrderCounts = { ...orderCounts };
+      delete newOrderCounts[customerId];
+      set({
+        orderCounts: newOrderCounts,
+      });
+
       return orderRef.id;
     } catch (error) {
       console.error("Error creating order:", error);
@@ -182,11 +140,87 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
+  // Fixed helper function to handle stock updates
+  updateProductStock: async (order: Order, oldStatus: OrderStatus, newStatus: OrderStatus) => {
+    const statusThatReducesStock = ["In Process", "Shipping", "Completed"];
+    const shouldReduceStock = !statusThatReducesStock.includes(oldStatus) && statusThatReducesStock.includes(newStatus);
+    const shouldRestoreStock = statusThatReducesStock.includes(oldStatus) && newStatus === "Cancelled";
+
+    if (!shouldReduceStock && !shouldRestoreStock) {
+      return; // No stock update needed
+    }
+
+    try {
+      // Use a transaction to ensure all stock updates are atomic
+      await runTransaction(db, async (transaction) => {
+        // First, perform ALL read operations
+        const productDocs = [];
+
+        // Read all product documents first
+        for (const item of order.orderItems) {
+          const productRef = doc(db, "product", item.productID);
+          const productDoc = await transaction.get(productRef);
+
+          if (!productDoc.exists()) {
+            throw new Error(`Product ${item.productID} not found`);
+          }
+
+          productDocs.push({
+            ref: productRef,
+            data: productDoc.data(),
+            item: item,
+          });
+        }
+
+        // Then, perform ALL write operations
+        for (const { ref, data, item } of productDocs) {
+          let newStockQuantity = data.stockQuantity;
+
+          if (shouldReduceStock) {
+            // Check if there's enough stock
+            if (data.stockQuantity < item.quantity) {
+              throw new Error(`Insufficient stock for product ${item.productName}`);
+            }
+
+            // Reduce stock
+            newStockQuantity = data.stockQuantity - item.quantity;
+          } else if (shouldRestoreStock) {
+            // Restore stock on cancellation
+            newStockQuantity = data.stockQuantity + item.quantity;
+          }
+
+          // Update the product stock
+          transaction.update(ref, { stockQuantity: newStockQuantity });
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error updating product stock:", error);
+      throw new Error(`Failed to update product stock: ${(error as Error).message}`);
+    }
+  },
+
   updateOrderStatus: async (orderId: string, status: OrderStatus) => {
     set({ isLoading: true, error: null });
 
     try {
-      await updateDoc(doc(db, "orders", orderId), {
+      // Get current order to compare status change
+      const orderRef = doc(db, "orders", orderId);
+      const orderDoc = await getDoc(orderRef);
+
+      if (!orderDoc.exists()) {
+        throw new Error("Order not found");
+      }
+
+      const currentOrder = { ...orderDoc.data(), id: orderDoc.id } as Order;
+      const oldStatus = currentOrder.orderStatus;
+
+      // First update stock (this will throw an error if it fails)
+      await get().updateProductStock(currentOrder, oldStatus, status);
+
+      // Then update order status
+      await updateDoc(orderRef, {
         orderStatus: status,
         updatedAt: serverTimestamp(),
       });
@@ -202,14 +236,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
           : order
       );
 
-      const currentOrder = get().currentOrder;
-      if (currentOrder && currentOrder.id === orderId) {
+      if (get().currentOrder?.id === orderId) {
         set({
           currentOrder: {
-            ...currentOrder,
+            ...get().currentOrder,
             orderStatus: status,
             updatedAt: Timestamp.now(),
-          },
+          } as Order,
         });
       }
 
@@ -226,7 +259,103 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  cancelOrder: async (orderId: string) => {
-    return get().updateOrderStatus(orderId, "Cancelled");
+  cancelOrder: async (orderId: string, cancellationReason: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const orderRef = doc(db, "orders", orderId);
+
+      // Add cancellation reason to the update
+      await updateDoc(orderRef, {
+        orderStatus: "Cancelled",
+        cancelledAt: serverTimestamp(),
+        cancellationReason: cancellationReason,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update the local state with the new status and reason
+      const { orders, currentOrder } = get();
+
+      // Update orders array
+      const updatedOrders = orders.map((order) => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            orderStatus: "Cancelled" as OrderStatus,
+            cancelledAt: Timestamp.now(),
+            cancellationReason: cancellationReason,
+          };
+        }
+        return order;
+      });
+
+      // Update currentOrder if it's the cancelled order
+      let updatedCurrentOrder = currentOrder;
+      if (currentOrder?.id === orderId) {
+        updatedCurrentOrder = {
+          ...currentOrder,
+          orderStatus: "Cancelled" as OrderStatus,
+          cancelledAt: Timestamp.now(),
+          cancellationReason: cancellationReason,
+        };
+      }
+
+      set({
+        orders: updatedOrders,
+        currentOrder: updatedCurrentOrder,
+        isLoading: false,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      set({
+        error: "Failed to cancel order",
+        isLoading: false,
+      });
+      return false;
+    }
+  },
+
+  // New function to get total orders by user ID with caching
+  getTotalOrdersByUserId: async (userId: string) => {
+    try {
+      // Check if we have a cached count and if it's still fresh (< 5 min old)
+      const orderCounts = get().orderCounts;
+      const cachedData = orderCounts[userId];
+      const now = Date.now();
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+      if (cachedData && now - cachedData.timestamp < CACHE_DURATION) {
+        return cachedData.count;
+      }
+
+      // No cache or expired cache, fetch from Firestore
+      const orderQuery = query(collection(db, "orders"), where("customerID", "==", userId));
+
+      const querySnapshot = await getDocs(orderQuery);
+      const count = querySnapshot.size;
+
+      // Cache the result
+      set({
+        orderCounts: {
+          ...get().orderCounts,
+          [userId]: {
+            count,
+            timestamp: now,
+          },
+        },
+      });
+
+      return count;
+    } catch (error) {
+      console.error("Error getting order count:", error);
+      return 0;
+    }
+  },
+
+  // Clear the order count cache
+  clearOrderCountCache: () => {
+    set({ orderCounts: {} });
   },
 }));

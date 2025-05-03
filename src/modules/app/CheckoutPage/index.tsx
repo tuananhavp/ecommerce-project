@@ -105,11 +105,11 @@ const CheckoutPage = () => {
     defaultValues: {
       customerName: user?.username || "",
       email: user?.email || "",
-      phone: "",
-      street: "",
-      city: "",
-      postalCode: "",
-      country: "Vietnam",
+      phone: user?.phone || "",
+      street: user?.addresses?.[0]?.street || "",
+      city: user?.addresses?.[0]?.city || "",
+      postalCode: user?.addresses?.[0]?.postalCode || "",
+      country: user?.addresses?.[0]?.country || "Vietnam",
       paymentMethod: "COD",
       notes: "",
     },
@@ -124,8 +124,6 @@ const CheckoutPage = () => {
   }, [user, setValue]);
 
   // Handle form submission
-  // In the onSubmit function of CheckoutPage
-
   const onSubmit = async (data: OrderFormValue) => {
     if (!termsAgreed) {
       Swal.fire({
@@ -137,7 +135,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!user) {
+    if (!user || !user.uid) {
       Swal.fire({
         title: "Login Required",
         text: "Please login to complete your order.",
@@ -185,8 +183,8 @@ const CheckoutPage = () => {
       // Set the flag to indicate we've placed an order
       orderPlacedRef.current = true;
 
-      // Call the createOrder function from orderStore
-      const orderID = await createOrder(orderData);
+      // Call the createOrder function from orderStore with customer ID
+      const orderID = await createOrder(orderData, user.uid);
 
       if (orderID) {
         // Show success message
@@ -202,8 +200,7 @@ const CheckoutPage = () => {
         }).then((result) => {
           if (result.isConfirmed) {
             router.push(`/orders/${orderID}`);
-          }
-          if (result.isDismissed) {
+          } else if (result.isDismissed) {
             router.push("/");
           } else {
             router.push("/cart");
@@ -213,13 +210,13 @@ const CheckoutPage = () => {
         throw new Error("Failed to create order");
       }
     } catch (error) {
-      console.error("Error processing order:", error);
       Swal.fire({
         title: "Error",
         text: "There was a problem processing your order. Please try again.",
         icon: "error",
         confirmButtonText: "OK",
       });
+      console.log(error);
       // Reset the flag since order placement failed
       orderPlacedRef.current = false;
     } finally {
