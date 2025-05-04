@@ -1,49 +1,54 @@
-import React from "react";
+// components/product/ProductDescription.tsx
+import React, { useState } from "react";
 
-const ProductDescription = () => {
-  const productDesc = {
-    desc: `This versatile backpack is designed to meet your everyday needs, whether 
-        you're heading to work, school, or an outdoor adventure. Made with high-quality, durable materials, 
-        it features multiple compartments for organizing your belongings, padded straps for comfortable carrying, 
-        and a sleek, modern design that suits various styles. Its spacious interior allows you to carry your laptop, 
-        books, and other essentials effortlessly, while the water-resistant fabric ensures protection during unexpected weather conditions. 
-        Perfect for those who value both functionality and style, this backpack is your ultimate companion for a busy lifestyle.`,
-    review: [
-      {
-        userId: "user12345",
-        name: "Mai Lan",
-        comment: "Very comfortable and spacious! Highly recommend.",
-        rating: 5,
-      },
-      {
-        userId: "user67890",
-        name: "Khai Nguyen",
-        comment: "Decent quality, but the color fades quickly.",
-        rating: 3,
-      },
-      {
-        userId: "user24680",
-        name: "Huy Pham",
-        comment: "The material feels cheap and is not durable.",
-        rating: 2,
-      },
-    ],
+import { ProductCardProps } from "@/types/product.types";
+
+import ReviewForm from "./ReviewForm";
+import ReviewList from "./ReviewList";
+
+interface ProductDescriptionProps {
+  product: ProductCardProps;
+}
+
+const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+  const [activeTab, setActiveTab] = useState("description");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleReviewAdded = () => {
+    // Force refresh of reviews
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
     <div className="mt-10">
       <div className="tabs tabs-lift">
-        <input type="radio" name="my_tabs_3" className="tab" aria-label="Description" defaultChecked />
+        <input
+          type="radio"
+          name="product_tabs"
+          className="tab"
+          aria-label="Description"
+          checked={activeTab === "description"}
+          onChange={() => setActiveTab("description")}
+        />
         <div className="tab-content bg-base-100 border-base-300 p-6 text-text-primary text-justify md:text-base text-xs">
-          {productDesc.desc}
+          {product.description ? product.description : "No description available."}
         </div>
 
-        <input type="radio" name="my_tabs_3" className="tab" aria-label={`Review[${productDesc.review.length}]`} />
+        <input
+          type="radio"
+          name="product_tabs"
+          className="tab"
+          aria-label={`Reviews (${product.reviewsCount || 0})`}
+          checked={activeTab === "reviews"}
+          onChange={() => setActiveTab("reviews")}
+        />
         <div className="tab-content bg-base-100 border-base-300 p-6 md:text-base text-xs">
-          Review{`[${productDesc.review.length}]`}
+          <ReviewForm productId={product.id} onReviewAdded={handleReviewAdded} />
+          <ReviewList productId={product.id} reviews={product.reviews || []} />
         </div>
       </div>
     </div>
   );
 };
+
 export default ProductDescription;

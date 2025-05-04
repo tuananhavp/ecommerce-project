@@ -1,4 +1,18 @@
+import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
+
+// Review embedded in product
+export interface ProductReview {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  rating: number;
+  comment?: string;
+  createdAt: Timestamp | Date;
+  helpful: number;
+  reported: boolean;
+}
 
 export interface ProductCardProps {
   id: string;
@@ -14,6 +28,7 @@ export interface ProductCardProps {
   updatedAt?: Date;
   rating?: number;
   reviewsCount?: number;
+  reviews?: ProductReview[]; // Array of embedded reviews
 }
 
 export interface ProductFilters {
@@ -23,6 +38,12 @@ export interface ProductFilters {
   inStock: boolean;
   rating: number | null;
 }
+
+export interface ReviewFormData {
+  rating: number;
+  comment?: string;
+}
+
 export interface ProductState {
   products: ProductCardProps[] | null;
   product: ProductCardProps | null;
@@ -46,6 +67,19 @@ export interface ProductState {
   setRating: (rating: number | null) => void;
   clearFilters: () => void;
   applyFilters: () => Promise<void>;
+
+  // Review actions
+  addReview: (
+    productId: string,
+    userId: string,
+    userName: string,
+    data: ReviewFormData,
+    userAvatar?: string
+  ) => Promise<ProductCardProps>;
+  updateReview: (productId: string, reviewId: string, data: Partial<ReviewFormData>) => Promise<ProductCardProps>;
+  deleteReview: (productId: string, reviewId: string) => Promise<ProductCardProps>;
+  markReviewHelpful: (productId: string, reviewId: string) => Promise<ProductCardProps>;
+  reportReview: (productId: string, reviewId: string) => Promise<ProductCardProps>;
 }
 
 export const productSchema = z.object({

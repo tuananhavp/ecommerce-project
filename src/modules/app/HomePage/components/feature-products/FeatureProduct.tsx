@@ -64,6 +64,7 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
                     category={product.category}
                     trending={product.trending}
                     imgUrl={product.imgUrl}
+                    rating={product.rating}
                   />
                 );
               })}
@@ -81,6 +82,7 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
               category={standoutProduct?.category}
               trending={standoutProduct?.trending}
               imgUrl={standoutProduct?.imgUrl}
+              rating={standoutProduct?.rating}
             />
           )}
         </div>

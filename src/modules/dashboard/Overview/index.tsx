@@ -104,7 +104,34 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     console.log("Data loading status:", { ordersLoading, usersLoading });
     console.log("Current data:", { orders: orders?.length || 0, users: users?.length || 0 });
+    const processDataForDashboard = (orders: Order[], users: AdminUserData[]): DashboardData => {
+      // For safety, ensure arrays even if input is null/undefined
+      const safeOrders = orders || [];
+      const safeUsers = users || [];
 
+      console.log(`Processing dashboard data: ${safeOrders.length} orders, ${safeUsers.length} users`);
+
+      // Calculate order statistics
+      const ordersByMonth = calculateOrdersByMonth(safeOrders);
+      const ordersByStatus = calculateOrdersByStatus(safeOrders);
+      const orderStatistics = calculateOrderStatistics(safeOrders);
+
+      // Calculate user statistics
+      const userStatistics = calculateUserStatistics(safeUsers);
+
+      // Calculate country analytics
+      const countryAnalytics = calculateCountryAnalytics(safeOrders);
+
+      return {
+        orders: safeOrders,
+        users: safeUsers,
+        orderStatistics,
+        userStatistics,
+        ordersByMonth,
+        ordersByStatus,
+        countryAnalytics,
+      };
+    };
     // Only process data when both orders and users are loaded
     if (!ordersLoading && !usersLoading) {
       console.log("Data loaded, processing...");
@@ -137,36 +164,6 @@ const Dashboard: React.FC = () => {
 
   // Combined loading state
   const isLoading = ordersLoading || usersLoading || !isDataProcessed;
-
-  // Process data for dashboard display
-  const processDataForDashboard = (orders: Order[], users: AdminUserData[]): DashboardData => {
-    // For safety, ensure arrays even if input is null/undefined
-    const safeOrders = orders || [];
-    const safeUsers = users || [];
-
-    console.log(`Processing dashboard data: ${safeOrders.length} orders, ${safeUsers.length} users`);
-
-    // Calculate order statistics
-    const ordersByMonth = calculateOrdersByMonth(safeOrders);
-    const ordersByStatus = calculateOrdersByStatus(safeOrders);
-    const orderStatistics = calculateOrderStatistics(safeOrders);
-
-    // Calculate user statistics
-    const userStatistics = calculateUserStatistics(safeUsers);
-
-    // Calculate country analytics
-    const countryAnalytics = calculateCountryAnalytics(safeOrders);
-
-    return {
-      orders: safeOrders,
-      users: safeUsers,
-      orderStatistics,
-      userStatistics,
-      ordersByMonth,
-      ordersByStatus,
-      countryAnalytics,
-    };
-  };
 
   // Helper functions for data processing
   const calculateOrdersByMonth = (orders: Order[]): MonthlyData[] => {

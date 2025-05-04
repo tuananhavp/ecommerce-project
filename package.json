@@ -13,6 +13,7 @@
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "firebase": "^11.6.0",
     "groceries-web-app": "file:",
     "lucide-react": "^0.488.0",
@@ -29,6 +30,7 @@
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.1.0",
     "uuid": "^11.1.0",
+    "uuidv4": "^6.2.13",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
   },

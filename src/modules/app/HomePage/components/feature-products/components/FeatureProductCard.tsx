@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import clsx from "clsx";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa"; // Import star icons
 import { FiPlusCircle } from "react-icons/fi";
 import { IoHeartOutline, IoHeart } from "react-icons/io5";
 import Swal from "sweetalert2";
@@ -13,13 +14,24 @@ import { useFavoriteStore } from "@/store/favouriteStore";
 import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
-const FeatureProductCard = ({ id, name, oldPrice, newPrice, stockQuantity, trending, imgUrl }: ProductCardProps) => {
+const FeatureProductCard = ({
+  id,
+  name,
+  oldPrice,
+  newPrice,
+  stockQuantity,
+  trending,
+  imgUrl,
+  rating: productRating,
+}: ProductCardProps) => {
   const { addToCart } = useCartStore();
   const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
   const [isMounted, setIsMounted] = useState(false);
-
+  console.log(productRating);
   // Calculate the effective price
   const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
+  // Use product rating or default to 3
+  const rating = productRating || 0;
 
   const Toast = Swal.mixin({
     toast: true,
@@ -107,7 +119,29 @@ const FeatureProductCard = ({ id, name, oldPrice, newPrice, stockQuantity, trend
 
   // Check if product is in favorites
   const productIsFavorite = isMounted && isFavorite(id);
-  const rating = 3;
+
+  // Function to render stars with a more visually appealing approach
+  const renderRatingStars = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => {
+          // For whole stars
+          if (star <= Math.floor(rating)) {
+            return <FaStar key={star} className="text-yellow-400 text-xs" />;
+          }
+          // For half stars
+          else if (star <= Math.ceil(rating) && rating % 1 >= 0.3 && rating % 1 <= 0.7) {
+            return <FaStarHalfAlt key={star} className="text-yellow-400 text-xs" />;
+          }
+          // For empty stars
+          else {
+            return <FaRegStar key={star} className="text-yellow-400 text-xs" />;
+          }
+        })}
+        <span className="ml-1 text-xs text-gray-500">({rating.toFixed(1)})</span>
+      </div>
+    );
+  };
 
   return (
     <div className="card lg:card-side bg-base-100 shadow-sm hover:shadow-lg relative">
@@ -133,28 +167,8 @@ const FeatureProductCard = ({ id, name, oldPrice, newPrice, stockQuantity, trend
           <span className="card-title lg:text-base sm:text-xs text-[10px]">{name}</span>
         </Link>
 
-        <div className="rating rating-xs">
-          {Array.from({ length: 5 }).map((_, index) => {
-            return index + 1 == rating ? (
-              <input
-                key={index}
-                type="radio"
-                name="rating-5"
-                className="mask mask-star-2 bg-orange-400"
-                aria-label={`${index + 1} star`}
-                defaultChecked
-              />
-            ) : (
-              <input
-                key={index}
-                type="radio"
-                name="rating-5"
-                className="mask mask-star-2 bg-orange-400"
-                aria-label={`${index + 1} star`}
-              />
-            );
-          })}
-        </div>
+        {/* Enhanced Rating Stars */}
+        {renderRatingStars(rating)}
 
         <div className="flex items-center gap-2">
           <span className={clsx("text-red-primary font-bold lg:text-xl sm:text-sm text-xs", newPrice == 0 && "hidden")}>

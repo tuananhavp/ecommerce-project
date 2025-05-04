@@ -1,9 +1,24 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import {
+  addDoc,
+  arrayRemove,
+  arrayUnion,
+  collection,
+  deleteDoc,
+  doc,
+  FieldValue,
+  getDoc,
+  getDocs,
+  query,
+  Timestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";
 
 import { db } from "@/firebase/firebase";
-import { ProductCardProps, ProductState } from "@/types/product.types";
+import { ProductCardProps, ProductReview, ProductState } from "@/types/product.types";
 
 export const useProductStore = create<ProductState>((set, get) => ({
   products: null,
@@ -254,6 +269,356 @@ export const useProductStore = create<ProductState>((set, get) => ({
     } catch (error) {
       console.error("Error updating product:", error);
       set({ isLoading: false, error: "Failed to update the product" });
+      throw error;
+    }
+  },
+
+  addReview: async (productId, userId, userName, data, userAvatar) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const productRef = doc(db, "product", productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      // Fetch user data from Firestore if userId is provided
+      let userDisplayName = userName;
+      let userProfileAvatar = userAvatar;
+
+      if (userId) {
+        try {
+          const userRef = doc(db, "users", userId);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            // Use the user data from Firestore if available
+            userDisplayName = userData.username || userData.name || userName || "Anonymous";
+            userProfileAvatar = userAvatar || userData.photoURL || userData.avatar || null;
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Continue with the original userName if user fetch fails
+        }
+      }
+
+      const productData = productSnap.data();
+      const currentRating = productData.rating || 0;
+      const currentReviewsCount = productData.reviewsCount || 0;
+
+      // Calculate new average rating
+      const newRating = (currentRating * currentReviewsCount + data.rating) / (currentReviewsCount + 1);
+
+      // Create new review object with JavaScript Date instead of serverTimestamp
+      const newReview = {
+        id: uuidv4(),
+        userId: userId,
+        userName: userDisplayName, // Use the fetched or provided user name
+        userAvatar: userProfileAvatar, // Use the fetched or provided avatar
+        rating: data.rating,
+        comment: data.comment || "",
+        createdAt: new Date(), // Use JavaScript Date instead of serverTimestamp()
+        helpful: 0,
+        reported: false,
+      };
+
+      // Update product with new review and updated rating
+      await updateDoc(productRef, {
+        reviews: arrayUnion(newReview),
+        rating: newRating,
+        reviewsCount: currentReviewsCount + 1,
+      });
+
+      // Get updated product
+      const updatedProductSnap = await getDoc(productRef);
+      if (updatedProductSnap.exists()) {
+        const updatedProduct = {
+          id: updatedProductSnap.id,
+          ...(updatedProductSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        set({
+          product: updatedProduct,
+          isLoading: false,
+        });
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error adding review:", error);
+      set({ isLoading: false, error: "Failed to add review" });
+      throw error;
+    }
+  },
+
+  updateReview: async (productId, reviewId, data) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const productRef = doc(db, "product", productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      interface Review {
+        id: string;
+        userId: string;
+        userName: string;
+        userAvatar: string | null;
+        rating: number;
+        comment: string;
+        createdAt: FieldValue | Date | Timestamp; // Firebase server timestamp or Date object
+        helpful: number;
+        reported: boolean;
+      }
+
+      const productData = productSnap.data();
+      const reviews = productData.reviews || [];
+      const targetReviewIndex = reviews.findIndex((review: Review) => review.id === reviewId);
+
+      if (targetReviewIndex === -1) {
+        throw new Error("Review not found");
+      }
+
+      // Calculate rating update if necessary
+      if (data.rating !== undefined && data.rating !== reviews[targetReviewIndex].rating) {
+        const oldRating = reviews[targetReviewIndex].rating;
+        const currentRating = productData.rating || 0;
+        const reviewsCount = productData.reviewsCount || 0;
+
+        // Remove old rating and add new one
+        const newRating = (currentRating * reviewsCount - oldRating + data.rating) / reviewsCount;
+
+        // Update product rating
+        await updateDoc(productRef, {
+          rating: newRating,
+        });
+      }
+
+      // Create updated review with JavaScript Date instead of serverTimestamp
+      const updatedReview = {
+        ...reviews[targetReviewIndex],
+        ...data,
+        updatedAt: new Date(), // Use JavaScript Date instead of serverTimestamp()
+      };
+
+      // First remove the old review
+      await updateDoc(productRef, {
+        reviews: arrayRemove(reviews[targetReviewIndex]),
+      });
+
+      // Then add the updated review
+      await updateDoc(productRef, {
+        reviews: arrayUnion(updatedReview),
+      });
+
+      // Get updated product
+      const updatedProductSnap = await getDoc(productRef);
+      if (updatedProductSnap.exists()) {
+        const updatedProduct = {
+          id: updatedProductSnap.id,
+          ...(updatedProductSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        set({
+          product: updatedProduct,
+          isLoading: false,
+        });
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error updating review:", error);
+      set({ isLoading: false, error: "Failed to update review" });
+      throw error;
+    }
+  },
+
+  deleteReview: async (productId, reviewId) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const productRef = doc(db, "product", productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      const productData = productSnap.data();
+      const reviews = productData.reviews || [];
+      const targetReview = reviews.find((review: ProductReview) => review.id === reviewId);
+
+      if (!targetReview) {
+        throw new Error("Review not found");
+      }
+
+      // Adjust rating
+      const currentRating = productData.rating || 0;
+      const currentReviewsCount = productData.reviewsCount || 0;
+
+      let newRating = 0;
+      const newReviewsCount = currentReviewsCount - 1;
+
+      if (newReviewsCount > 0) {
+        // Calculate new average rating by removing this review's rating
+        newRating = (currentRating * currentReviewsCount - targetReview.rating) / newReviewsCount;
+      }
+
+      // Remove review and update rating
+      await updateDoc(productRef, {
+        reviews: arrayRemove(targetReview),
+        rating: newRating,
+        reviewsCount: newReviewsCount,
+      });
+
+      // Get updated product
+      const updatedProductSnap = await getDoc(productRef);
+      if (updatedProductSnap.exists()) {
+        const updatedProduct = {
+          id: updatedProductSnap.id,
+          ...(updatedProductSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        set({
+          product: updatedProduct,
+          isLoading: false,
+        });
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      set({ isLoading: false, error: "Failed to delete review" });
+      throw error;
+    }
+  },
+
+  markReviewHelpful: async (productId, reviewId) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const productRef = doc(db, "product", productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      const productData = productSnap.data();
+      const reviews = productData.reviews || [];
+      const targetReview = reviews.find((review: ProductReview) => review.id === reviewId);
+
+      if (!targetReview) {
+        throw new Error("Review not found");
+      }
+
+      // Create updated review with incremented helpful count
+      const updatedReview = {
+        ...targetReview,
+        helpful: (targetReview.helpful || 0) + 1,
+      };
+
+      // First remove the old review
+      await updateDoc(productRef, {
+        reviews: arrayRemove(targetReview),
+      });
+
+      // Then add the updated review
+      await updateDoc(productRef, {
+        reviews: arrayUnion(updatedReview),
+      });
+
+      // Get updated product
+      const updatedProductSnap = await getDoc(productRef);
+      if (updatedProductSnap.exists()) {
+        const updatedProduct = {
+          id: updatedProductSnap.id,
+          ...(updatedProductSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        set({
+          product: updatedProduct,
+          isLoading: false,
+        });
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error marking review as helpful:", error);
+      set({ isLoading: false, error: "Failed to mark review as helpful" });
+      throw error;
+    }
+  },
+
+  reportReview: async (productId, reviewId) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const productRef = doc(db, "product", productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      const productData = productSnap.data();
+      const reviews = productData.reviews || [];
+      const targetReview = reviews.find((review: ProductReview) => review.id === reviewId);
+
+      if (!targetReview) {
+        throw new Error("Review not found");
+      }
+
+      // Create updated review with reported flag
+      const updatedReview = {
+        ...targetReview,
+        reported: true,
+      };
+
+      // First remove the old review
+      await updateDoc(productRef, {
+        reviews: arrayRemove(targetReview),
+      });
+
+      // Then add the updated review
+      await updateDoc(productRef, {
+        reviews: arrayUnion(updatedReview),
+      });
+
+      // Get updated product
+      const updatedProductSnap = await getDoc(productRef);
+      if (updatedProductSnap.exists()) {
+        const updatedProduct = {
+          id: updatedProductSnap.id,
+          ...(updatedProductSnap.data() as Omit<ProductCardProps, "id">),
+        };
+
+        set({
+          product: updatedProduct,
+          isLoading: false,
+        });
+
+        return updatedProduct;
+      } else {
+        throw new Error("Failed to retrieve the updated product");
+      }
+    } catch (error) {
+      console.error("Error reporting review:", error);
+      set({ isLoading: false, error: "Failed to report review" });
       throw error;
     }
   },

@@ -40,7 +40,7 @@ const Product = () => {
               <ProductGallery product={product} />
               <ProductOption product={product} />
             </div>
-            <ProductDescription />
+            <ProductDescription product={product} />
             <RelatedProduct products={products} product={product} isLoading={isLoading} />
           </>
         ) : (

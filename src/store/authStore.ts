@@ -127,7 +127,34 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-  // In your updateProfile function in authStore.ts, add this to handle addresses
+
+  // Add a new method to set the primary address
+  setPrimaryAddress: async (addressIndex: number) => {
+    set({ isLoading: true, error: null });
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No authenticated user found");
+      }
+
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, {
+        primaryAddressIndex: addressIndex,
+      });
+
+      // Update the local state
+      set((state) => ({
+        user: state.user ? { ...state.user, primaryAddressIndex: addressIndex } : null,
+        isLoading: false,
+      }));
+
+      return true;
+    } catch (error) {
+      console.error("Error setting primary address:", error);
+      set({ error: (error as Error).message, isLoading: false });
+      return false;
+    }
+  },
 
   updateProfile: async (userData, currentPassword = null) => {
     set({ isLoading: true, error: null });
@@ -137,7 +164,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error("No authenticated user found");
       }
 
-      const { username, email, password, phone, addresses } = userData;
+      const { username, email, password, phone, addresses, primaryAddressIndex } = userData;
 
       // Get the existing user data
       const userRef = doc(db, "users", currentUser.uid);
@@ -154,6 +181,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         ...(username && { username }),
         ...(phone && { phone }),
         ...(addresses && { addresses }),
+        // Include primaryAddressIndex if it's provided
+        ...(typeof primaryAddressIndex !== "undefined" && { primaryAddressIndex }),
       };
 
       // Update email and password if provided (requires reauthentication)

@@ -13,6 +13,7 @@ export interface UserProfile {
   phone?: string;
   avatar?: string;
   addresses?: Address[];
+  primaryAddressIndex?: number; // New field for primary address
   cart?: CartItem[];
 }
 
@@ -21,6 +22,7 @@ export interface EnhancedUser extends User {
   username?: string;
   role?: "customer" | "admin";
   addresses?: Address[];
+  primaryAddressIndex?: number; // New field for primary address
   avatar?: string;
   phone?: string;
 }
@@ -35,6 +37,7 @@ export interface AuthState {
   logout: () => Promise<void>;
   initialize: () => void;
   updateProfile: (userData: Partial<UserProfile>, currentPassword?: string | null) => Promise<boolean>;
+  setPrimaryAddress: (addressIndex: number) => Promise<boolean>; // New method
 }
 
 // Admin dashboard extensions
@@ -50,6 +53,7 @@ export type AdminUserData = {
   phone?: string;
   avatar?: string;
   addresses?: Address[];
+  primaryAddressIndex?: number; // New field for primary address
   notes?: string;
   totalOrders?: number;
   totalSpent?: number;

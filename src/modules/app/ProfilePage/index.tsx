@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useForm, FieldValues } from "react-hook-form";
-import { FiEdit2, FiTrash2, FiPlus, FiUser, FiMapPin, FiLock } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPlus, FiUser, FiMapPin, FiLock, FiCheck } from "react-icons/fi";
 
 import Checkbox from "@/components/Checkbox";
 import InputField from "@/components/InputField";
@@ -26,7 +26,7 @@ interface ProfileFormData extends FieldValues {
 
 const ProfilePage = () => {
   const router = useRouter();
-  const { user, isLoading, error, updateProfile } = useAuthStore();
+  const { user, isLoading, error, updateProfile, setPrimaryAddress } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"profile" | "addresses">("profile");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddressIndex, setEditingAddressIndex] = useState<number | null>(null);
@@ -34,6 +34,7 @@ const ProfilePage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isPasswordChange, setIsPasswordChange] = useState(false);
   const [isEmailChange, setIsEmailChange] = useState(false);
+  const [primaryAddressIndex, setPrimaryAddressIndex] = useState<number | undefined>(undefined);
 
   // Profile form
   const {
@@ -91,6 +92,11 @@ const ProfilePage = () => {
       if (user.addresses && user.addresses.length > 0) {
         setAddresses(user.addresses);
       }
+
+      // Set primary address index if it exists
+      if (typeof user.primaryAddressIndex !== "undefined") {
+        setPrimaryAddressIndex(user.primaryAddressIndex);
+      }
     }
   }, [user, isLoading, router, setProfileValue]);
 
@@ -133,6 +139,11 @@ const ProfilePage = () => {
     } else {
       // Add new address
       setAddresses((prev) => [...prev, newAddress]);
+
+      // If this is the first address, automatically set it as primary
+      if (addresses.length === 0) {
+        setPrimaryAddressIndex(0);
+      }
     }
 
     // Reset form
@@ -152,6 +163,20 @@ const ProfilePage = () => {
   };
 
   const handleRemoveAddress = (index: number) => {
+    // Check if the deleted address is the primary address
+    if (primaryAddressIndex === index) {
+      // Reset primary address or set the next available address as primary
+      if (addresses.length > 1) {
+        const newPrimaryIndex = index === addresses.length - 1 ? index - 1 : index;
+        setPrimaryAddressIndex(newPrimaryIndex);
+      } else {
+        setPrimaryAddressIndex(undefined);
+      }
+    } else if (primaryAddressIndex !== undefined && primaryAddressIndex > index) {
+      // If we're removing an address before the primary, we need to decrement the index
+      setPrimaryAddressIndex(primaryAddressIndex - 1);
+    }
+
     setAddresses(addresses.filter((_, i) => i !== index));
   };
 
@@ -161,6 +186,21 @@ const ProfilePage = () => {
     setShowAddressForm(false);
   };
 
+  // Handle setting an address as primary
+  const handleSetPrimaryAddress = async (index: number) => {
+    // Update local state
+    setPrimaryAddressIndex(index);
+
+    // Update in Firebase via our store method
+    try {
+      await setPrimaryAddress(index);
+      setSuccessMessage("Primary address updated");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Failed to set primary address:", error);
+    }
+  };
+
   const onSubmit = handleSubmitProfile(async (data) => {
     setSuccessMessage("");
 
@@ -168,6 +208,7 @@ const ProfilePage = () => {
       username: data.username,
       phone: data.phone,
       addresses: addresses,
+      primaryAddressIndex: primaryAddressIndex,
     };
 
     // Add email and password only if they're being changed
@@ -238,7 +279,7 @@ const ProfilePage = () => {
               <h2 className="text-2xl font-bold mb-1">{user?.username || "Your Profile"}</h2>
               <p className="opacity-90 mb-3">{user?.email}</p>
               <div className="badge badge-outline badge-lg text-white border-white uppercase">
-                {user?.role || "User"}
+                {user?.role || "Customer"}
               </div>
             </div>
           </div>
@@ -517,14 +558,33 @@ const ProfilePage = () => {
                   {addresses.map((address, index) => (
                     <div
                       key={index}
-                      className="card bg-base-100 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all"
+                      className={`card bg-base-100 border transition-all ${
+                        primaryAddressIndex === index
+                          ? "border-primary shadow-md"
+                          : "border-gray-200 hover:border-primary/30 hover:shadow-md"
+                      }`}
                     >
                       <div className="card-body">
                         <div className="flex justify-between items-start">
                           <div className="flex gap-2 items-center">
                             <div className="badge badge-primary">Address {index + 1}</div>
+                            {primaryAddressIndex === index && (
+                              <div className="badge badge-accent gap-1">
+                                <FiCheck className="h-3 w-3" /> Primary
+                              </div>
+                            )}
                           </div>
                           <div className="flex gap-2">
+                            {primaryAddressIndex !== index && (
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => handleSetPrimaryAddress(index)}
+                                title="Set as primary address"
+                              >
+                                Set as Primary
+                              </button>
+                            )}
                             <button
                               type="button"
                               className="btn btn-ghost btn-sm btn-circle"
@@ -648,6 +708,21 @@ const ProfilePage = () => {
                           </label>
                         )}
                       </div>
+
+                      {/* If this is a new address and we have no other addresses, let user set as primary */}
+                      {editingAddressIndex === null && addresses.length === 0 && (
+                        <div className="form-control md:col-span-2">
+                          <label className="cursor-pointer label flex gap-2 justify-start">
+                            <input
+                              type="checkbox"
+                              className="checkbox checkbox-primary"
+                              checked={true}
+                              disabled={true}
+                            />
+                            <span className="label-text">Set as primary address (automatic for first address)</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
 
                     <div className="card-actions justify-end mt-4">

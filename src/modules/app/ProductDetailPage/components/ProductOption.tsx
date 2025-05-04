@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { AiOutlineMinus } from "react-icons/ai";
 import { BsWallet2 } from "react-icons/bs";
 import { CiShoppingCart } from "react-icons/ci";
-import { FaShoppingBag } from "react-icons/fa";
+import { FaStar, FaRegStar, FaShoppingBag } from "react-icons/fa"; // Import star icons
 import { FaPlus } from "react-icons/fa6";
 import { GrShieldSecurity } from "react-icons/gr";
 import { IoMdShare } from "react-icons/io";
@@ -17,10 +17,11 @@ import { CartItem } from "@/types/cart.types";
 import { ProductCardProps } from "@/types/product.types";
 
 const ProductOption = ({ product }: { product: ProductCardProps }) => {
-  const { id, name, description, oldPrice, newPrice, imgUrl, stockQuantity } = product;
+  const { id, name, description, oldPrice, newPrice, imgUrl, stockQuantity, rating: productRating } = product;
   const initialQuantity = 1,
-    maxQuantity = stockQuantity > 10 ? 10 : stockQuantity,
-    rating = 3;
+    maxQuantity = stockQuantity > 10 ? 10 : stockQuantity;
+  // Use the product's rating or default to 0
+  const rating = productRating || 0;
   const [quantity, setQuantity] = useState(initialQuantity);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -133,32 +134,31 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
     window.location.href = "/checkout";
   };
 
+  // Function to render stars with a cleaner approach
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star}>
+            {star <= Math.round(rating) ? (
+              <FaStar className="text-yellow-400" />
+            ) : (
+              <FaRegStar className="text-gray-300" />
+            )}
+          </span>
+        ))}
+        <span className="ml-2 text-xs text-gray-500">({rating.toFixed(1)})</span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4">
       <h2 className="text-text-primary text-xl md:text-2xl lg:text-3xl font-bold">{name}</h2>
 
-      <div className="rating rating-xs">
-        {Array.from({ length: 5 }).map((_, index) => {
-          return index + 1 == rating ? (
-            <input
-              key={index}
-              type="radio"
-              name="rating-5"
-              className="mask mask-star-2 bg-orange-400"
-              aria-label={`${index + 1} star`}
-              defaultChecked
-            />
-          ) : (
-            <input
-              key={index}
-              type="radio"
-              name="rating-5"
-              className="mask mask-star-2 bg-orange-400"
-              aria-label={`${index + 1} star`}
-            />
-          );
-        })}
-      </div>
+      {/* Replaced the rating with the new renderStars function */}
+      {renderStars(rating)}
+
       <span className="text-xs md:text-sm text-gray-secondary mt-1 md:mt-2">{description}</span>
 
       <div className="flex items-center gap-2">
