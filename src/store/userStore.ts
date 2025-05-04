@@ -41,7 +41,7 @@ interface UserStore {
   pagination: UserPagination;
 
   // User fetching methods
-  fetchUsers: (reset?: boolean) => Promise<void>;
+  fetchUsers: (reset?: boolean) => Promise<AdminUserData[]>;
   fetchMoreUsers: () => Promise<void>;
   getUserById: (userId: string) => Promise<AdminUserData | null>;
   searchUsers: (searchTerm: string) => Promise<void>;
@@ -70,7 +70,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
   },
 
   // Fetch users with filtering and pagination
-  fetchUsers: async (reset = true) => {
+  fetchUsers: async (reset = true): Promise<AdminUserData[]> => {
     try {
       set({ isLoading: true, error: null });
 
@@ -150,12 +150,16 @@ export const useUserStore = create<UserStore>((set, get) => ({
           isLoading: false,
         });
       }
+
+      // Return the current state's users array
+      return get().users;
     } catch (error) {
       console.error("Error fetching users:", error);
       set({
         error: "Failed to fetch users",
         isLoading: false,
       });
+      return []; // Return empty array on error
     }
   },
 

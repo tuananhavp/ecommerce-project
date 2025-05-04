@@ -1,19 +1,22 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { JSX } from "react";
+
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/Chart";
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
+interface AreaChartData {
+  month: string;
+  desktop: number;
+  mobile: number;
+}
+
+interface AreaChartBarProps {
+  data: AreaChartData[];
+}
 
 const chartConfig = {
   desktop: {
@@ -26,12 +29,28 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function AreaChartBar() {
+export function AreaChartBar({ data }: AreaChartBarProps): JSX.Element {
+  // Calculate total orders and growth
+  const totalOrders = data.reduce((acc, month) => acc + month.desktop + month.mobile, 0);
+
+  // Calculate month-over-month growth
+  const currentMonth = data[data.length - 1];
+  const previousMonth = data[data.length - 2] || { desktop: 0, mobile: 0 };
+
+  const currentTotal = currentMonth ? currentMonth.desktop + currentMonth.mobile : 0;
+  const previousTotal = previousMonth ? previousMonth.desktop + previousMonth.mobile : 0;
+
+  const growthPercent = previousTotal > 0 ? (((currentTotal - previousTotal) / previousTotal) * 100).toFixed(1) : "0";
+
+  const growthIsPositive = parseFloat(growthPercent) > 0;
+
   return (
     <Card className="w-full border-0">
       <CardHeader>
-        <CardTitle className="text-lg md:text-xl">Area Chart - Stacked</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Showing total visitors for the last 6 months</CardDescription>
+        <CardTitle className="text-lg md:text-xl">Order Trends</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
+          Order distribution by device for the last 6 months
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-2 sm:px-4 md:px-6">
         <ChartContainer
@@ -40,7 +59,7 @@ export function AreaChartBar() {
         >
           <AreaChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               left: 8,
               right: 8,
@@ -79,10 +98,20 @@ export function AreaChartBar() {
         <div className="flex w-full items-start gap-1 md:gap-2 text-xs sm:text-sm">
           <div className="grid gap-1 md:gap-2">
             <div className="flex items-center gap-1 md:gap-2 font-medium leading-none">
-              Trending up by 5.2% this month <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
+              {growthIsPositive ? (
+                <>
+                  Trending up by {growthPercent}% this month{" "}
+                  <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
+                </>
+              ) : (
+                <>
+                  Trending down by {Math.abs(parseFloat(growthPercent))}% this month{" "}
+                  <TrendingDown className="h-3 w-3 md:h-4 md:w-4 text-red-500" />
+                </>
+              )}
             </div>
             <div className="flex items-center gap-1 md:gap-2 leading-none text-muted-foreground text-xs">
-              January - June 2024
+              Total Orders: {totalOrders}
             </div>
           </div>
         </div>

@@ -1,39 +1,41 @@
 "use client";
 
-import { useMemo } from "react";
+import { JSX, useMemo } from "react";
 
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { Label, Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/Chart";
 
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 190, fill: "var(--color-other)" },
-];
+interface PieChartData {
+  browser: string;
+  visitors: number;
+  fill: string;
+}
+
+interface PieChartBarProps {
+  data: PieChartData[];
+}
 
 const chartConfig = {
   visitors: {
-    label: "Visitors",
+    label: "Orders",
   },
   chrome: {
-    label: "Chrome",
+    label: "Pending",
     color: "#2563eb",
   },
   safari: {
-    label: "Safari",
+    label: "Processing",
     color: "#60a5fa",
   },
   firefox: {
-    label: "Firefox",
+    label: "Shipping",
     color: "#634C9F",
   },
   edge: {
-    label: "Edge",
+    label: "Completed",
     color: "#0DCAF0",
   },
   other: {
@@ -42,16 +44,36 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function PieChartBar() {
-  const totalVisitors = useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
+export function PieChartBar({ data }: PieChartBarProps): JSX.Element {
+  const totalOrders = useMemo(() => {
+    return data.reduce((acc, curr) => acc + curr.visitors, 0);
+  }, [data]);
+
+  // Calculate completed orders percentage
+  const completedOrders = data.find((item) => item.browser === "edge")?.visitors || 0;
+  const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+
+  // Determine if completion rate is trending up or down (simulated)
+  const trendingUp = completionRate > 50;
+
+  interface ViewBox {
+    cx?: number;
+    cy?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    startAngle?: number;
+    endAngle?: number;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  }
 
   return (
     <Card className="flex flex-col w-full border-0">
       <CardHeader className="items-center pb-0">
-        <CardTitle className="text-lg md:text-xl">Pie Chart - Donut with Text</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">January - June 2024</CardDescription>
+        <CardTitle className="text-lg md:text-xl">Order Status Distribution</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Current order processing status</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0 px-2 sm:px-4 md:px-6">
         <ChartContainer
@@ -60,10 +82,10 @@ export function PieChartBar() {
         >
           <PieChart>
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-            <Pie data={chartData} dataKey="visitors" nameKey="browser" innerRadius={45} strokeWidth={4}>
+            <Pie data={data} dataKey="visitors" nameKey="browser" innerRadius={45} strokeWidth={4}>
               <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                content={({ viewBox }: { viewBox?: ViewBox }) => {
+                  if (viewBox && typeof viewBox.cx === "number" && typeof viewBox.cy === "number") {
                     return (
                       <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                         <tspan
@@ -71,18 +93,15 @@ export function PieChartBar() {
                           y={viewBox.cy}
                           className="fill-foreground text-xl sm:text-2xl md:text-3xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {totalOrders.toLocaleString()}
                         </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 20}
-                          className="fill-muted-foreground text-xs sm:text-sm"
-                        >
-                          Visitors
+                        <tspan x={viewBox.cx} y={viewBox.cy + 20} className="fill-muted-foreground text-xs sm:text-sm">
+                          Orders
                         </tspan>
                       </text>
                     );
                   }
+                  return null;
                 }}
               />
             </Pie>
@@ -91,9 +110,19 @@ export function PieChartBar() {
       </CardContent>
       <CardFooter className="flex-col gap-1 md:gap-2 text-xs sm:text-sm">
         <div className="flex items-center gap-1 md:gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
+          {trendingUp ? (
+            <>
+              Completion rate: {completionRate}% <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
+            </>
+          ) : (
+            <>
+              Completion rate: {completionRate}% <TrendingDown className="h-3 w-3 md:h-4 md:w-4 text-amber-500" />
+            </>
+          )}
         </div>
-        <div className="leading-none text-muted-foreground text-xs">Showing total visitors for the last 6 months</div>
+        <div className="leading-none text-muted-foreground text-xs">
+          {completedOrders} of {totalOrders} orders completed
+        </div>
       </CardFooter>
     </Card>
   );

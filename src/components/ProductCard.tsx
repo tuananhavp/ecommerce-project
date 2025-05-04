@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { BsCart2 } from "react-icons/bs";
 import { FiEye } from "react-icons/fi";
 import { IoHeartOutline, IoHeart } from "react-icons/io5";
+import { MdOutlineRemoveShoppingCart } from "react-icons/md";
 import Swal from "sweetalert2";
 
 import { useCartStore } from "@/store/cartStore";
@@ -28,6 +29,9 @@ const ProductCard = ({
   const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
   const [isFav, setIsFav] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Check if product is out of stock
+  const isOutOfStock = stockQuantity <= 0;
 
   // Calculate the effective price
   const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
@@ -53,6 +57,15 @@ const ProductCard = ({
   }, [id, isFavorite, fetchFavorites]);
 
   const handleAddToCart = async () => {
+    // Don't proceed if out of stock
+    if (isOutOfStock) {
+      Toast.fire({
+        icon: "error",
+        title: `${name} is currently out of stock`,
+      });
+      return;
+    }
+
     // Create a cart item with the required properties
     const cartItem: CartItem = {
       productID: id,
@@ -122,7 +135,10 @@ const ProductCard = ({
 
   return (
     <div
-      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full relative overflow-hidden"
+      className={clsx(
+        "bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full relative overflow-hidden",
+        { "opacity-90 grayscale-[30%]": isOutOfStock }
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{ height: "450px" }} // Fixed card height
@@ -130,10 +146,13 @@ const ProductCard = ({
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
         {trending && <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">NEW</div>}
-        {discountPercentage > 0 && (
+        {discountPercentage > 0 && !isOutOfStock && (
           <div className="bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-md">
             {discountPercentage}% OFF
           </div>
+        )}
+        {isOutOfStock && (
+          <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">OUT OF STOCK</div>
         )}
       </div>
 
@@ -157,6 +176,16 @@ const ProductCard = ({
               height={180}
               style={{ maxHeight: "100%", width: "auto" }}
             />
+
+            {/* Overlay for out of stock products */}
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-white bg-opacity-30 flex items-center justify-center">
+                <div className="bg-red-500 bg-opacity-75 text-white px-3 py-2 rounded-full flex items-center shadow-lg">
+                  <MdOutlineRemoveShoppingCart className="mr-1" />
+                  <span className="text-sm font-medium">Out of Stock</span>
+                </div>
+              </div>
+            )}
           </div>
         </Link>
 
@@ -175,11 +204,11 @@ const ProductCard = ({
           </Link>
           <button
             onClick={handleAddToCart}
-            className={`bg-white hover:bg-gray-100 p-2 rounded-full shadow-md transition-all ${
-              stockQuantity <= 0 ? "cursor-not-allowed opacity-50" : ""
+            className={`bg-white p-2 rounded-full shadow-md transition-all ${
+              isOutOfStock ? "cursor-not-allowed opacity-50 hover:bg-gray-100" : "hover:bg-gray-100"
             }`}
-            disabled={stockQuantity <= 0}
-            title={stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
+            disabled={isOutOfStock}
+            title={isOutOfStock ? "Out of Stock" : "Add to Cart"}
           >
             <BsCart2 className="text-gray-700" />
           </button>
@@ -203,10 +232,15 @@ const ProductCard = ({
         {/* Price and actions - at the bottom */}
         <div className="mt-auto">
           <div className="flex items-center gap-2 mb-2">
-            {newPrice && newPrice > 0 && <span className="text-purple-600 font-bold text-lg">${newPrice}</span>}
+            {newPrice && newPrice > 0 && (
+              <span className={clsx("font-bold text-lg", isOutOfStock ? "text-gray-500" : "text-purple-600")}>
+                ${newPrice}
+              </span>
+            )}
             <span
               className={clsx("text-gray-500", {
-                "text-purple-600 font-bold text-lg": newPrice === 0,
+                "text-purple-600 font-bold text-lg": newPrice === 0 && !isOutOfStock,
+                "text-gray-500 font-bold text-lg": newPrice === 0 && isOutOfStock,
                 "text-sm line-through": newPrice !== 0,
               })}
             >
@@ -220,18 +254,23 @@ const ProductCard = ({
               <span className="text-xs text-gray-500">
                 Available: <span className="font-medium">{stockQuantity}</span>
               </span>
-              {stockQuantity > 0 ? (
+              {!isOutOfStock ? (
                 <span className="text-xs font-medium text-green-600">In Stock</span>
               ) : (
                 <span className="text-xs font-medium text-red-500">Out of Stock</span>
               )}
             </div>
-            {stockQuantity > 0 && (
+            {!isOutOfStock && (
               <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                 <div
                   className="bg-green-500 h-1.5 rounded-full"
                   style={{ width: `${Math.min(100, (stockQuantity / 40) * 100)}%` }}
                 ></div>
+              </div>
+            )}
+            {isOutOfStock && (
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                <div className="bg-red-500 h-1.5 rounded-full" style={{ width: "100%" }}></div>
               </div>
             )}
           </div>
@@ -240,14 +279,14 @@ const ProductCard = ({
           <button
             className={clsx(
               "w-full py-2 rounded-md font-medium transition-colors text-sm",
-              stockQuantity <= 0
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              isOutOfStock
+                ? "bg-red-100 text-red-500 cursor-not-allowed border border-red-300"
                 : "bg-purple-primary hover:bg-purple-700 text-white"
             )}
             onClick={handleAddToCart}
-            disabled={stockQuantity <= 0}
+            disabled={isOutOfStock}
           >
-            {stockQuantity <= 0 ? "Out of Stock" : "Add to Cart"}
+            {isOutOfStock ? "Out of Stock" : "Add to Cart"}
           </button>
         </div>
       </div>
