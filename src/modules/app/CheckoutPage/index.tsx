@@ -83,8 +83,7 @@ const CheckoutPage = () => {
 
   // Shipping methods
   const shippingMethods = [
-    { id: "flat_rate", name: "Flat rate", price: 10 },
-    { id: "free_shipping", name: "Free shipping", price: 0 },
+    { id: "free_shipping", name: "Shipping", price: 0 },
     { id: "local_pickup", name: "Local pickup", price: 5 },
   ];
 

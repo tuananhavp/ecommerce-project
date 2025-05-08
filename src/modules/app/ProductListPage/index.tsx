@@ -15,6 +15,8 @@ const ProductCategoryPage = () => {
   const { slug } = useParams();
   const { setCategory, applyFilters, products, isLoading, error, getAllProduct, clearFilters } = useProductStore();
 
+  // Get page from URL or default to 1
+
   useEffect(() => {
     clearFilters();
     if (slug) {
@@ -50,9 +52,11 @@ const ProductCategoryPage = () => {
 
   return (
     <>
-      <div className="container mx-auto mt-8 w-11/12">
+      <div className="container mx-auto mt-8 pb-10 w-11/12">
         <Breadcrumbs path="Category Product" />
-        <h1 className="text-3xl font-bold mb-6 capitalize">Category Products</h1>
+        <h1 className="text-3xl font-bold mb-6 capitalize">
+          {slug ? `${capitalizeFirstLetter(slug.toString())} Products` : "All Products"}
+        </h1>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar */}
           <aside className="w-full md:w-1/4">

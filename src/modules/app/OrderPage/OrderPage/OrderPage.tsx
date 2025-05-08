@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Timestamp } from "firebase/firestore";
-import { FaBox, FaCalendarAlt, FaLock } from "react-icons/fa";
+import { FieldValue, Timestamp } from "firebase/firestore";
+import { FaBox, FaCalendarAlt, FaChevronDown, FaChevronUp, FaLock } from "react-icons/fa";
 import { HiOutlineDocumentText, HiOutlineStatusOnline } from "react-icons/hi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import Swal from "sweetalert2";
@@ -13,12 +14,14 @@ import Swal from "sweetalert2";
 import { getStatusColor } from "@/helpers";
 import { useAuthStore } from "@/store/authStore";
 import { useOrderStore } from "@/store/orderStore";
+import { OrderStatus } from "@/types/order.types";
 
 const OrdersPage = () => {
   const router = useRouter();
   const { user } = useAuthStore();
   const { orders, fetchOrders, cancelOrder, isLoading, error } = useOrderStore();
   const [cancelProcessing, setCancelProcessing] = useState(false);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -91,6 +94,15 @@ const OrdersPage = () => {
       </div>
     );
   }
+
+  // Toggle order details expansion
+  const toggleOrderDetails = (orderId: string) => {
+    if (expandedOrder === orderId) {
+      setExpandedOrder(null);
+    } else {
+      setExpandedOrder(orderId);
+    }
+  };
 
   // Handle order cancellation with reason
   const handleCancelOrder = async (orderId: string) => {
@@ -175,6 +187,24 @@ const OrdersPage = () => {
     }
   };
 
+  // Format date from Timestamp
+  const formatDate = (timestamp: Timestamp | Date | FieldValue) => {
+    if (timestamp instanceof Timestamp) {
+      return timestamp.toDate().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } else if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+    return "Processing";
+  };
+
   return (
     <div className="container mx-auto py-10 px-4 max-w-6xl">
       {/* Page Header */}
@@ -220,7 +250,11 @@ const OrdersPage = () => {
               <div>
                 <p className="text-yellow-700 text-sm font-semibold">In Progress</p>
                 <p className="text-2xl font-bold text-yellow-800">
-                  {orders.filter((order) => ["Pending", "In Process", "Shipping"].includes(order.orderStatus)).length}
+                  {
+                    orders.filter((order) =>
+                      ["Pending", "In Process", "Shipping"].includes(order.orderStatus as OrderStatus)
+                    ).length
+                  }
                 </p>
               </div>
             </div>
@@ -328,71 +362,150 @@ const OrdersPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/orders/${order.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                      >
-                        #{order.id?.substring(0, 8)}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <FaCalendarAlt className="text-gray-400 mr-2" />
-                        <span>
-                          {order.createdAt instanceof Timestamp
-                            ? order.createdAt.toDate().toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })
-                            : "Processing"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          order.orderStatus
-                        )}`}
-                      >
-                        {order.orderStatus}
-                        {order.orderStatus === "Completed" && <FaLock className="ml-1 inline text-xs" />}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-medium">${order.totalAmount.toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {order.orderItems.length} {order.orderItems.length === 1 ? "item" : "items"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Link
-                        href={`/orders/${order.id}`}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-900 px-3 py-1 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition"
-                      >
-                        <span className="text-sm">Details</span>
-                      </Link>
-
-                      {order.orderStatus === "Pending" && (
-                        <button
-                          className="inline-flex items-center text-red-600 hover:text-red-900 px-3 py-1 border border-red-200 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
-                          onClick={() => handleCancelOrder(order.id as string)}
-                          disabled={cancelProcessing}
+                  <React.Fragment key={order.id}>
+                    <tr
+                      className={`hover:bg-gray-50 transition-colors ${expandedOrder === order.id ? "bg-gray-50" : ""}`}
+                    >
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/orders/${order.id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
                         >
-                          <span className="text-sm">{cancelProcessing ? "Cancelling..." : "Cancel"}</span>
-                        </button>
-                      )}
-
-                      {order.orderStatus === "Completed" && (
-                        <span className="inline-flex items-center text-gray-400 px-3 py-1 border border-gray-200 rounded-lg bg-gray-50">
-                          <FaLock className="mr-1 text-xs" />
-                          <span className="text-sm">Completed</span>
+                          #{order.id?.substring(0, 8)}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <FaCalendarAlt className="text-gray-400 mr-2" />
+                          <span>{formatDate(order.createdAt)}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            order.orderStatus
+                          )}`}
+                        >
+                          {order.orderStatus}
+                          {order.orderStatus === "Completed" && <FaLock className="ml-1 inline text-xs" />}
                         </span>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-6 py-4 font-medium">${order.totalAmount.toFixed(2)}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => toggleOrderDetails(order.id as string)}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
+                        >
+                          {order.orderItems.length} {order.orderItems.length === 1 ? "item" : "items"}
+                          {expandedOrder === order.id ? (
+                            <FaChevronUp className="ml-1 text-xs" />
+                          ) : (
+                            <FaChevronDown className="ml-1 text-xs" />
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <Link
+                          href={`/orders/${order.id}`}
+                          className="inline-flex items-center text-indigo-600 hover:text-indigo-900 px-3 py-1 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition"
+                        >
+                          <span className="text-sm">Details</span>
+                        </Link>
+
+                        {order.orderStatus === "Pending" && (
+                          <button
+                            className="inline-flex items-center text-red-600 hover:text-red-900 px-3 py-1 border border-red-200 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
+                            onClick={() => handleCancelOrder(order.id as string)}
+                            disabled={cancelProcessing}
+                          >
+                            <span className="text-sm">{cancelProcessing ? "Cancelling..." : "Cancel"}</span>
+                          </button>
+                        )}
+
+                        {order.orderStatus === "Completed" && (
+                          <span className="inline-flex items-center text-gray-400 px-3 py-1 border border-gray-200 rounded-lg bg-gray-50">
+                            <FaLock className="mr-1 text-xs" />
+                            <span className="text-sm">Completed</span>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+
+                    {/* Expandable Order Items Section */}
+                    {expandedOrder === order.id && (
+                      <tr>
+                        <td colSpan={6} className="px-0 py-0 border-0">
+                          <div className="bg-gray-50 border-t border-b border-gray-200 w-full transition-all">
+                            <div className="px-6 py-4">
+                              <h4 className="font-medium text-gray-700 mb-3">Order Items</h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {order.orderItems.map((item, index) => (
+                                  <div
+                                    key={index}
+                                    className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3"
+                                  >
+                                    <div className="w-16 h-16 relative flex-shrink-0">
+                                      {item.productImage && (
+                                        <Image
+                                          src={item.productImage}
+                                          alt={item.productName}
+                                          fill
+                                          className="object-contain rounded"
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <Link
+                                        href={`/product/${item.productID}`}
+                                        className="block text-sm font-medium text-gray-900 truncate hover:underline"
+                                      >
+                                        {item.productName}
+                                      </Link>
+                                      <div className="mt-1 flex justify-between items-center">
+                                        <span className="text-sm text-gray-500">
+                                          {item.quantity} × ${item.pricePerUnit.toFixed(2)}
+                                        </span>
+                                        <span className="font-medium text-gray-900">${item.subtotal.toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Order Summary */}
+                              <div className="mt-4 flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center border-t border-gray-200 pt-3">
+                                <div>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                    <span className="text-sm text-gray-500">
+                                      Subtotal: ${order.totalAmount.toFixed(2)}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                      Shipping: ${order.shippingCost?.toFixed(2) || "0.00"}
+                                    </span>
+                                    <span className="text-sm text-gray-500">Method: {order.paymentMethod}</span>
+                                  </div>
+                                  {order.deliveryAddress && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Shipping to: {order.deliveryAddress.city}, {order.deliveryAddress.country}
+                                    </div>
+                                  )}
+                                  {order.trackingNumber && (
+                                    <div className="text-xs text-gray-500 mt-1">Tracking #: {order.trackingNumber}</div>
+                                  )}
+                                </div>
+                                <Link
+                                  href={`/orders/${order.id}`}
+                                  className="text-sm text-indigo-600 hover:text-indigo-900 hover:underline"
+                                >
+                                  View Details
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

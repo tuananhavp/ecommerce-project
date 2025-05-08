@@ -72,7 +72,7 @@ const ProductCard = ({
       name: name,
       price: price ?? 0,
       imgUrl: imgUrl[0],
-      quantity: 1, // Default quantity is 1 when adding to cart
+      quantity: 1,
     };
 
     try {
@@ -145,7 +145,10 @@ const ProductCard = ({
     >
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-        {trending && <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">NEW</div>}
+        {/* Only show NEW badge if product is trending AND in stock */}
+        {trending && !isOutOfStock && (
+          <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">NEW</div>
+        )}
         {discountPercentage > 0 && !isOutOfStock && (
           <div className="bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-md">
             {discountPercentage}% OFF
@@ -232,7 +235,7 @@ const ProductCard = ({
         {/* Price and actions - at the bottom */}
         <div className="mt-auto">
           <div className="flex items-center gap-2 mb-2">
-            {newPrice && newPrice > 0 && (
+            {newPrice != null && newPrice !== undefined && newPrice > 0 && (
               <span className={clsx("font-bold text-lg", isOutOfStock ? "text-gray-500" : "text-purple-600")}>
                 ${newPrice}
               </span>

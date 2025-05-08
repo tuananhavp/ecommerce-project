@@ -332,7 +332,7 @@ const OrdersTable = () => {
                         <FaEye className="text-blue-600" />
                       </Link>
 
-                      {order.orderStatus === "Completed" ? (
+                      {order.orderStatus === "Completed" || order.orderStatus === "Cancelled" ? (
                         <button
                           className="btn btn-ghost btn-xs opacity-50 cursor-not-allowed flex items-center gap-1"
                           disabled

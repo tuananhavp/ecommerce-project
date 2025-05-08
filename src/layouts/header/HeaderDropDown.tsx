@@ -28,7 +28,7 @@ export const UserProfileDropdown = ({ user, handleLogout }: UserProfileDropdownP
       <summary className="btn btn-ghost btn-circle m-1">
         <CgProfile className="md:size-8 size-4 hover:opacity-60" />
       </summary>
-      <ul className="menu dropdown-content bg-base-100 rounded-box z-[100] w-44 p-2 text-sm shadow-lg mt-2">
+      <ul className="menu dropdown-content bg-base-100 rounded-box z-[100] p-2 text-sm shadow-lg mt-2">
         {user ? (
           <>
             <div className="px-3 py-2 text-xs text-gray-500 border-b mb-1 border-gray-300">
