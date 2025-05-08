@@ -71,33 +71,23 @@ export const HEADER_SUB_LINKS = [
 
 export const HEADER_NAV_LINKS = [
   {
-    link: "/product",
+    link: "/",
     name: "Home",
     list: true,
   },
   {
-    link: "/product",
+    link: "/product/category",
     name: "Shop",
     list: true,
   },
   {
-    link: "/product",
+    link: "/product/category/vegetables",
     name: "Fruits & Vegetables",
     list: false,
   },
   {
-    link: "/product",
+    link: "/product/category/beverages",
     name: "Beverages",
-    list: false,
-  },
-  {
-    link: "/product",
-    name: "Blog",
-    list: false,
-  },
-  {
-    link: "/product",
-    name: "Contact",
     list: false,
   },
 ];

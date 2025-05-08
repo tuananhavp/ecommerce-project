@@ -1,14 +1,18 @@
 "use client";
 import React from "react";
 
-import { FieldValues, Path, UseFormRegister } from "react-hook-form";
+import { FieldValues, Path, UseFormRegister, FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
+
+import ErrorMessage from "./ErrorMessage";
+
 interface CheckboxProps<T extends FieldValues> extends React.InputHTMLAttributes<HTMLInputElement> {
   name: Path<T>;
   title: string;
   labelClassName?: string;
   inputClassName?: string;
   register: UseFormRegister<T>;
+  error?: FieldError;
 }
 
 const Checkbox = <T extends FieldValues>({
@@ -20,11 +24,12 @@ const Checkbox = <T extends FieldValues>({
   inputClassName,
   labelClassName,
   register,
+  error,
   ...rest
 }: CheckboxProps<T>) => {
   return (
-    <>
-      <label className={twMerge("fieldset-label", labelClassName)}>
+    <div className="mb-2">
+      <label className={twMerge("fieldset-label inline-flex items-center gap-2", labelClassName)}>
         <input
           type={type}
           className={twMerge("checkbox", inputClassName)}
@@ -33,9 +38,10 @@ const Checkbox = <T extends FieldValues>({
           {...register(name)}
           {...rest}
         />
-        {title}
+        <span>{title}</span>
       </label>
-    </>
+      <ErrorMessage error={error} />
+    </div>
   );
 };
 

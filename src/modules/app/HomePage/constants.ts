@@ -28,13 +28,13 @@ export const FEATURE_BANNER = [
     image: "/grocery-banner.png",
     title: "Grocery store at the center of the city",
     description: "New products with updated stocks.",
-    link: "/",
+    link: "/product/owNrXPQf5oA99BRxzX35",
   },
   {
     image: "/service-banner.png",
     title: "Provides you the quality that’s you expected",
     description: "Feed your family the best.",
-    link: "/",
+    link: "/product/KY58dzTJO5s5m8SJxxQM",
   },
 ];
 

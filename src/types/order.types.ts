@@ -26,8 +26,8 @@ export type Order = {
   email: string;
   phone: string;
   createdAt: FieldValue | Timestamp | Date;
-  cancelledAt?: FieldValue | Timestamp | Date; // New field for when order was cancelled
-  cancellationReason?: string; // New field for cancellation reason
+  cancelledAt?: FieldValue | Timestamp | Date;
+  cancellationReason?: string;
   deliveryAddress: {
     street: string;
     city: string;
@@ -47,11 +47,10 @@ export type Order = {
 
 export type CreateOrderInput = Omit<Order, "id" | "createdAt" | "orderStatus" | "customerID" | "updatedAt">;
 
-// Interface for order counts cache
 export interface OrderCountsCache {
   [userId: string]: {
     count: number;
-    timestamp: number; // Cache timestamp for expiration
+    timestamp: number;
   };
 }
 
@@ -60,7 +59,7 @@ export interface OrderState {
   currentOrder: Order | null;
   isLoading: boolean;
   error: string | null;
-  orderCounts: OrderCountsCache; // Added for caching order counts
+  orderCounts: OrderCountsCache;
 
   fetchOrders: (customerId?: string) => Promise<Order[]>;
   getOrderById: (orderId: string) => Promise<Order | null>;
@@ -68,8 +67,8 @@ export interface OrderState {
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   cancelOrder: (orderId: string, cancellationReason: string) => Promise<boolean>;
   updateProductStock: (order: Order, oldStatus: OrderStatus, newStatus: OrderStatus) => Promise<boolean | void>;
-  getTotalOrdersByUserId: (userId: string) => Promise<number>; // Added new function
-  clearOrderCountCache: () => void; // Added function to clear cache
+  getTotalOrdersByUserId: (userId: string) => Promise<number>;
+  clearOrderCountCache: () => void;
 }
 
 export const OrderFormSchema = z.object({

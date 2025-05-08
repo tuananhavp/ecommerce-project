@@ -22,7 +22,7 @@ interface RatingStatistics {
   distribution: number[];
 }
 
-const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refreshKey = 0 }) => {
+const ReviewList = ({ productId, reviews = [], refreshKey = 0 }: ReviewListProps) => {
   console.log(reviews);
   const { markReviewHelpful, reportReview, isLoading } = useProductStore();
   const { user } = useAuthStore();
@@ -68,7 +68,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
       return;
     }
 
-    // Check if already marked this review
     if (actionedReviews[user.uid]?.includes(reviewId)) {
       Swal.fire({
         title: "Already Marked",
@@ -83,7 +82,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
     try {
       await markReviewHelpful(productId, reviewId);
 
-      // Track this action
       setActionedReviews((prev) => ({
         ...prev,
         [user.uid]: [...(prev[user.uid] || []), reviewId],
@@ -116,7 +114,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
       return;
     }
 
-    // Check if already reported this review
     if (actionedReviews[user.uid]?.includes(`report-${reviewId}`)) {
       Swal.fire({
         title: "Already Reported",
@@ -140,7 +137,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
         try {
           await reportReview(productId, reviewId);
 
-          // Track this action
           setActionedReviews((prev) => ({
             ...prev,
             [user.uid]: [...(prev[user.uid] || []), `report-${reviewId}`],
@@ -170,7 +166,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
       return timestamp.toLocaleDateString();
     }
 
-    // Handle Firestore Timestamp
     if (timestamp && "toDate" in timestamp && typeof timestamp.toDate === "function") {
       return timestamp.toDate().toLocaleDateString();
     }
@@ -178,7 +173,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
     return "Unknown date";
   };
 
-  // Function to render stars
   const renderRatingStars = (rating: number) => {
     return (
       <div className="flex">
@@ -191,9 +185,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ productId, reviews = [], refres
     );
   };
 
-  // Helper function to display user name
   const displayUserName = (review: ProductReview) => {
-    // userName should now be populated from the store
     return review.userName || "Anonymous";
   };
 

@@ -12,7 +12,7 @@ interface ReviewFormProps {
   onReviewAdded?: () => void;
 }
 
-const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewAdded }) => {
+const ReviewForm = ({ productId, onReviewAdded }: ReviewFormProps) => {
   const { user } = useAuthStore();
   const { addReview, isLoading } = useProductStore();
   const [rating, setRating] = useState(0);
@@ -40,13 +40,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewAdded }) => 
       return;
     }
 
-    // Comment is now optional, so we remove this validation
-    // No need to check comment length anymore
-
     try {
       const reviewData: ReviewFormData = {
         rating,
-        comment: comment.trim(), // We still trim the comment even if it's empty
+        comment: comment.trim(),
       };
 
       await addReview(productId, user.uid, user.displayName || "Anonymous", reviewData, user.photoURL || undefined);

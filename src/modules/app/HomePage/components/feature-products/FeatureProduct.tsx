@@ -51,7 +51,7 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
         <div>
           <div className="grid grid-cols-1 grid-rows-3 gap-4">
             {products &&
-              products?.slice(0, 3).map((product, index) => {
+              products?.slice(3, 6).map((product, index) => {
                 return (
                   <FeatureProductCard
                     key={index}

@@ -74,7 +74,6 @@ const OrdersTable = () => {
       result = result.filter((order) => order.orderStatus === statusFilter);
     }
 
-    // Apply search filter (search by customer name, email, or ID)
     if (searchTerm) {
       const lowerSearchTerm = searchTerm.toLowerCase();
       result = result.filter(
@@ -89,7 +88,7 @@ const OrdersTable = () => {
     if (dateRange.start && dateRange.end) {
       const startDate = new Date(dateRange.start);
       const endDate = new Date(dateRange.end);
-      endDate.setHours(23, 59, 59); // Include the entire end day
+      endDate.setHours(23, 59, 59);
 
       const startTimestamp = Timestamp.fromDate(startDate);
       const endTimestamp = Timestamp.fromDate(endDate);

@@ -66,23 +66,19 @@ export const useFavoriteStore = create<FavoriteState>()(
             return;
           }
 
-          // Create new favorite item with timestamp
           const favoriteItem: FavoriteItem = {
             ...item,
             addedAt: Date.now(),
           };
 
-          // Add new item to favorites
           const updatedFavorites = [...currentFavorites, favoriteItem];
 
-          // If user is logged in, update Firestore
           if (user?.uid) {
             await updateDoc(doc(db, "users", user.uid), {
               favorites: updatedFavorites,
             });
           }
 
-          // Update local state (localStorage update handled by persist middleware)
           set({
             favorites: updatedFavorites,
             isLoading: false,
@@ -101,14 +97,12 @@ export const useFavoriteStore = create<FavoriteState>()(
           const currentFavorites = get().favorites;
           const updatedFavorites = currentFavorites.filter((item) => item.productID !== productID);
 
-          // If user is logged in, update Firestore
           if (user?.uid) {
             await updateDoc(doc(db, "users", user.uid), {
               favorites: updatedFavorites,
             });
           }
 
-          // Update local state (localStorage update handled by persist middleware)
           set({
             favorites: updatedFavorites,
             isLoading: false,
@@ -128,14 +122,12 @@ export const useFavoriteStore = create<FavoriteState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // If user is logged in, update Firestore with empty favorites
           if (user?.uid) {
             await updateDoc(doc(db, "users", user.uid), {
               favorites: [],
             });
           }
 
-          // Update local state (localStorage update handled by persist middleware)
           set({
             favorites: [],
             isLoading: false,
@@ -146,26 +138,22 @@ export const useFavoriteStore = create<FavoriteState>()(
         }
       },
 
-      // Function to merge guest favorites with user favorites when logging in
       mergeFavoritesWithUserFavorites: async () => {
         const { user } = useAuthStore.getState();
         if (!user?.uid) {
-          return; // No user to merge with
+          return;
         }
 
         try {
           set({ isLoading: true, error: null });
 
-          // Get localStorage favorites (already in state due to persist middleware)
           const localFavorites = get().favorites;
 
-          // If local favorites is empty, no need to merge
           if (localFavorites.length === 0) {
             set({ isLoading: false });
             return;
           }
 
-          // Get user favorites from Firestore
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (!userDoc.exists()) {
             set({ error: "User profile not found", isLoading: false });
@@ -175,24 +163,20 @@ export const useFavoriteStore = create<FavoriteState>()(
           const userData = userDoc.data();
           const userFavorites: FavoriteItem[] = userData.favorites || [];
 
-          // Merge favorites (avoiding duplicates)
           const mergedFavorites = [...userFavorites];
 
           for (const localItem of localFavorites) {
             const existingItemIndex = mergedFavorites.findIndex((item) => item.productID === localItem.productID);
 
             if (existingItemIndex === -1) {
-              // Only add items that don't already exist in user favorites
               mergedFavorites.push(localItem);
             }
           }
 
-          // Update Firestore with merged favorites
           await updateDoc(doc(db, "users", user.uid), {
             favorites: mergedFavorites,
           });
 
-          // Update local state (localStorage update handled by persist middleware)
           set({
             favorites: mergedFavorites,
             isLoading: false,

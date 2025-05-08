@@ -15,7 +15,7 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 
 const TrendingProduct = ({ products, isLoading }: { products: ProductCardProps[] | null; isLoading: boolean }) => {
-  const fillterTrendingProducts = products?.filter((product) => product.trending === true);
+  const fillterTrendingProducts = products?.filter((product) => product.trending === true && product.stockQuantity > 0);
 
   if (isLoading) {
     return (

@@ -5,7 +5,6 @@ import { ProductCardProps } from "@/types/product.types";
 
 import SortingOptions from "./SortingOption";
 
-// Pagination component
 const Pagination = ({
   totalItems,
   itemsPerPage,
@@ -96,20 +95,17 @@ const Pagination = ({
   );
 };
 
-// Main product list component with pagination
 const ProductList = ({ products }: { products: ProductCardProps[] }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(9); // Show 9 products per page
+  const [itemsPerPage] = useState(9);
   const [sort, setSort] = useState("newest");
   const [sortedProducts, setSortedProducts] = useState<ProductCardProps[]>([]);
 
-  // Apply sorting to products with in-stock products first
+  // Apply sorting to products
   useEffect(() => {
-    // First, separate in-stock and out-of-stock products
     const inStockProducts = products.filter((product) => product.stockQuantity > 0);
     const outOfStockProducts = products.filter((product) => product.stockQuantity <= 0);
 
-    // Then sort each group according to the selected sort option
     const sortProductGroup = (group: ProductCardProps[]) => {
       const sorted = [...group];
 
@@ -139,7 +135,6 @@ const ProductList = ({ products }: { products: ProductCardProps[] }) => {
           break;
         case "newest":
         default:
-          // For newest, we assume products already have the correct order within their groups
           break;
       }
 
@@ -166,7 +161,6 @@ const ProductList = ({ products }: { products: ProductCardProps[] }) => {
   // Change page
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    // Scroll to top of product list when page changes
     window.scrollTo({
       top: document.getElementById("product-list-top")?.offsetTop || 0,
       behavior: "smooth",

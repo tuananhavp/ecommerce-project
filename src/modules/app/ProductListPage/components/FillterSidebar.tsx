@@ -107,7 +107,6 @@ const FilterSidebar = () => {
         setCategory(newCategories[0] || null);
       }
     } else {
-      // For now we're handling just one category at a time
       setSelectedCategories([formattedCategory]);
       setCategory(formattedCategory);
     }
@@ -117,7 +116,6 @@ const FilterSidebar = () => {
     <div className="bg-base-100 p-6 rounded-lg shadow-md sticky top-4">
       <h2 className="text-xl font-bold mb-6">Filters</h2>
 
-      {/* Price Range with MUI Range Slider */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold mb-3">Price Range</h3>
 
@@ -151,7 +149,6 @@ const FilterSidebar = () => {
           </div>
         </div>
 
-        {/* MUI Range Slider */}
         <Box sx={{ width: "100%", padding: "0 6px", marginTop: 2, marginBottom: 3 }}>
           <Slider
             value={priceValues}
@@ -181,7 +178,6 @@ const FilterSidebar = () => {
         </Box>
       </div>
 
-      {/* Improved Rating Filter with DaisyUI */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold mb-3">Customer Rating</h3>
         <div className="form-control w-full">
@@ -199,7 +195,6 @@ const FilterSidebar = () => {
           </select>
         </div>
 
-        {/* Visual Star Display of Current Selection */}
         <div className="mt-3 p-3 bg-base-200 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-lg">{filters.rating ? renderStars(filters.rating) : renderStars(0)}</div>
@@ -208,7 +203,7 @@ const FilterSidebar = () => {
         </div>
       </div>
 
-      {/* Product Categories as Checkboxes */}
+      {/* Product Categories */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold mb-3">Product Categories</h3>
         <div className="max-h-60 overflow-auto pr-1">

@@ -19,7 +19,7 @@ type SortingOptionsProps = {
   onSortChange: (sort: string) => void;
 };
 
-const SortingOptions: React.FC<SortingOptionsProps> = ({ currentSort, onSortChange }) => {
+const SortingOptions = ({ currentSort, onSortChange }: SortingOptionsProps) => {
   return (
     <div className="flex items-center mb-6">
       <label htmlFor="sort-select" className="mr-2 text-sm font-medium">

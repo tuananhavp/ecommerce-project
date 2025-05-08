@@ -24,23 +24,20 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   currentOrder: null,
   isLoading: false,
   error: null,
-  orderCounts: {}, // Initialize empty cache object
+  orderCounts: {}, 
 
-  // Fetch all orders (for admin) or filter by customerId if provided
   fetchOrders: async (customerId?: string) => {
     set({ isLoading: true, error: null });
     try {
       let ordersQuery;
 
       if (customerId) {
-        // If customerId is provided, filter by customer
         ordersQuery = query(
           collection(db, "orders"),
           where("customerID", "==", customerId),
           orderBy("createdAt", "desc")
         );
       } else {
-        // Fetch all orders (admin view)
         ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
       }
 
@@ -216,16 +213,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const currentOrder = { ...orderDoc.data(), id: orderDoc.id } as Order;
       const oldStatus = currentOrder.orderStatus;
 
-      // First update stock (this will throw an error if it fails)
       await get().updateProductStock(currentOrder, oldStatus, status);
 
-      // Then update order status
       await updateDoc(orderRef, {
         orderStatus: status,
         updatedAt: serverTimestamp(),
       });
 
-      // Update local state
       const orders = get().orders.map((order) =>
         order.id === orderId
           ? {
@@ -273,7 +267,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         updatedAt: serverTimestamp(),
       });
 
-      // Update the local state with the new status and reason
       const { orders, currentOrder } = get();
 
       // Update orders array
@@ -320,7 +313,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   // New function to get total orders by user ID with caching
   getTotalOrdersByUserId: async (userId: string) => {
     try {
-      // Check if we have a cached count and if it's still fresh (< 5 min old)
       const orderCounts = get().orderCounts;
       const cachedData = orderCounts[userId];
       const now = Date.now();
@@ -330,13 +322,11 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         return cachedData.count;
       }
 
-      // No cache or expired cache, fetch from Firestore
       const orderQuery = query(collection(db, "orders"), where("customerID", "==", userId));
 
       const querySnapshot = await getDocs(orderQuery);
       const count = querySnapshot.size;
 
-      // Cache the result
       set({
         orderCounts: {
           ...get().orderCounts,
@@ -354,7 +344,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  // Clear the order count cache
   clearOrderCountCache: () => {
     set({ orderCounts: {} });
   },

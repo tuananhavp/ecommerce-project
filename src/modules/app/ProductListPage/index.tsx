@@ -15,8 +15,6 @@ const ProductCategoryPage = () => {
   const { slug } = useParams();
   const { setCategory, applyFilters, products, isLoading, error, getAllProduct, clearFilters } = useProductStore();
 
-  // Get page from URL or default to 1
-
   useEffect(() => {
     clearFilters();
     if (slug) {

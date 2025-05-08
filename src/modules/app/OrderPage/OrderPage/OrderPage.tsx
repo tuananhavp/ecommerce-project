@@ -134,7 +134,7 @@ const OrdersPage = () => {
         },
         showCancelButton: true,
         confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
+        cancelButtonColor: "gray",
         confirmButtonText: "Yes, cancel order",
         cancelButtonText: "No, keep order",
         inputValidator: (value) => {
@@ -162,7 +162,6 @@ const OrdersPage = () => {
       });
 
       if (isConfirmed && cancelReason) {
-        // Call the updated cancelOrder method with reason
         const success = await cancelOrder(orderId, cancelReason);
 
         if (success) {

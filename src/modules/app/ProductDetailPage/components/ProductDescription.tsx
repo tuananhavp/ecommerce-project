@@ -10,7 +10,7 @@ interface ProductDescriptionProps {
   product: ProductCardProps;
 }
 
-const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+const ProductDescription = ({ product }: ProductDescriptionProps) => {
   const [activeTab, setActiveTab] = useState("description");
   const [refreshKey, setRefreshKey] = useState(0);
 

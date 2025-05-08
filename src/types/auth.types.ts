@@ -1,5 +1,6 @@
 import { User } from "firebase/auth";
 import { FieldValue, Timestamp } from "firebase/firestore";
+import { FieldValues } from "react-hook-form";
 
 import { CartItem } from "./cart.types";
 import { Address } from "./order.types";
@@ -13,7 +14,7 @@ export interface UserProfile {
   phone?: string;
   avatar?: string;
   addresses?: Address[];
-  primaryAddressIndex?: number; // New field for primary address
+  primaryAddressIndex?: number; 
   cart?: CartItem[];
 }
 
@@ -22,7 +23,7 @@ export interface EnhancedUser extends User {
   username?: string;
   role?: "customer" | "admin";
   addresses?: Address[];
-  primaryAddressIndex?: number; // New field for primary address
+  primaryAddressIndex?: number; 
   avatar?: string;
   phone?: string;
 }
@@ -53,8 +54,17 @@ export type AdminUserData = {
   phone?: string;
   avatar?: string;
   addresses?: Address[];
-  primaryAddressIndex?: number; // New field for primary address
+  primaryAddressIndex?: number; 
   notes?: string;
   totalOrders?: number;
   totalSpent?: number;
 };
+
+export interface ProfileFormData extends FieldValues {
+  username: string;
+  email: string;
+  phone: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

@@ -1,7 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
-// Review embedded in product
 export interface ProductReview {
   id: string;
   userId: string;
@@ -28,7 +27,7 @@ export interface ProductCardProps {
   updatedAt?: Date;
   rating?: number;
   reviewsCount?: number;
-  reviews?: ProductReview[]; // Array of embedded reviews
+  reviews?: ProductReview[]; 
 }
 
 export interface ProductFilters {

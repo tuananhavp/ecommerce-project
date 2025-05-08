@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { AiOutlineMinus } from "react-icons/ai";
 import { BsWallet2 } from "react-icons/bs";
 import { CiShoppingCart } from "react-icons/ci";
-import { FaStar, FaRegStar, FaShoppingBag } from "react-icons/fa"; // Import star icons
+import { FaStar, FaRegStar } from "react-icons/fa"; // Import star icons
 import { FaPlus } from "react-icons/fa6";
 import { GrShieldSecurity } from "react-icons/gr";
 import { IoMdShare } from "react-icons/io";
@@ -126,14 +126,6 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
     }
   };
 
-  // Handle buy now (you can implement this if needed)
-  const handleBuyNow = () => {
-    // Add to cart and redirect to checkout page
-    handleAddToCart();
-    // Redirect to checkout page
-    window.location.href = "/checkout";
-  };
-
   // Function to render stars with a cleaner approach
   const renderStars = (rating: number) => {
     return (
@@ -156,7 +148,6 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
     <div className="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4">
       <h2 className="text-text-primary text-xl md:text-2xl lg:text-3xl font-bold">{name}</h2>
 
-      {/* Replaced the rating with the new renderStars function */}
       {renderStars(rating)}
 
       <span className="text-xs md:text-sm text-gray-secondary mt-1 md:mt-2">{description}</span>
@@ -224,17 +215,6 @@ const ProductOption = ({ product }: { product: ProductCardProps }) => {
             >
               <CiShoppingCart className="size-4 md:size-6" />
               <p className="item__btn-text">Add to Cart</p>
-            </button>
-            <button
-              className={clsx(
-                "font-bold text-white py-2 md:py-3 px-4 md:px-6 lg:px-9 bg-[#212529] rounded-lg md:rounded-xl hover:opacity-85 flex items-center gap-1 md:gap-2 cursor-pointer text-xs md:text-sm",
-                stockQuantity <= 0 && "opacity-60 cursor-not-allowed"
-              )}
-              onClick={handleBuyNow}
-              disabled={stockQuantity <= 0}
-            >
-              <FaShoppingBag className="size-3 md:size-4" />
-              <p className="item__btn-text">Buy Now</p>
             </button>
           </div>
         </div>

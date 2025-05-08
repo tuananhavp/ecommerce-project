@@ -25,7 +25,7 @@ const SignIn = () => {
     handleSubmit,
     register,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<UserValues>({
     mode: "onChange",
     resolver: zodResolver(signInSchema),
   });
@@ -64,8 +64,8 @@ const SignIn = () => {
               placeholder="Email"
               inputClassName="w-full"
               register={register}
+              error={errors.email}
             />
-            {errors.email && <p className="text-red-500">{errors.email.message}</p>}
 
             <InputField
               name="password"
@@ -74,18 +74,20 @@ const SignIn = () => {
               placeholder="Password"
               inputClassName="w-full"
               register={register}
+              error={errors.password}
             />
-            {errors.password && <p className="text-red-500">{errors.password.message}</p>}
 
             <div className="mt-3 flex justify-between items-center text-sm">
-              <Checkbox name="remember" title="Remember me" register={register} />
+              <Checkbox name="remember" title="Remember me" register={register} error={errors.remember} />
               <div>
                 <Link href={"/"} className="text-[#1D4ED8] font-medium hover:text-blue-400">
                   Lost your password?
                 </Link>
               </div>
             </div>
-            {error && <p className="text-red-500">{error}</p>}
+
+            {error && <p className="text-red-500 mt-3">{error}</p>}
+
             <button disabled={isSubmitting} type="submit" className="btn btn-neutral bg-purple-primary mt-4">
               {isSubmitting ? <span className="loading loading-dots loading-sm"></span> : "Login"}
             </button>

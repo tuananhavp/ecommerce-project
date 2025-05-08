@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import { z } from "zod";
 
 import Checkbox from "@/components/Checkbox";
+import ErrorMessage from "@/components/ErrorMessage";
 import InputField from "@/components/InputField";
 import { useAuthStore } from "@/store/authStore";
 
@@ -20,6 +21,7 @@ const signUpSchema = z.object({
     errorMap: () => ({ message: "Please select a role" }),
   }),
 });
+
 type AccountValues = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
@@ -31,6 +33,7 @@ const SignUp = () => {
   } = useForm<AccountValues>({
     resolver: zodResolver(signUpSchema),
   });
+
   const onSubmit = async (data: AccountValues) => {
     try {
       await signup(data.name, data.email, data.password, data.role);
@@ -52,17 +55,18 @@ const SignUp = () => {
         aria-label="Register"
       />
       <div className="tab-content bg-base-100 border-base-300 p-6 shadow-md">
-        <form className="" onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <fieldset className="fieldset w-full bg-white border border-base-300 p-4 rounded-box">
             <InputField
               name="name"
               title="Username"
               type="text"
               placeholder="Username"
-              inputClassName="input w-full "
+              inputClassName="input w-full"
               register={register}
+              error={errors.name}
             />
-            {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+
             <InputField
               name="email"
               title="Email"
@@ -70,8 +74,9 @@ const SignUp = () => {
               placeholder="Email"
               inputClassName="input w-full"
               register={register}
+              error={errors.email}
             />
-            {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+
             <InputField
               name="password"
               title="Password"
@@ -79,8 +84,9 @@ const SignUp = () => {
               placeholder="Password"
               inputClassName="input w-full"
               register={register}
+              error={errors.password}
             />
-            {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+
             <div className="mt-4">
               <Checkbox
                 name="role"
@@ -99,16 +105,18 @@ const SignUp = () => {
                 register={register}
               />
             </div>
-            {errors.role && <p className="text-red-500">{errors.role.message}</p>}
-            {error && <p className="text-red-500">{error}</p>}
+
+            <ErrorMessage error={errors.role} />
+            <ErrorMessage error={error ? { message: error } : undefined} />
 
             <button disabled={isSubmitting} type="submit" className="btn btn-neutral bg-purple-primary mt-4">
-              {isSubmitting ? <span className="isLoading isLoading-dots isLoading-sm"></span> : "Register"}
+              {isSubmitting ? <span className="loading loading-dots loading-sm"></span> : "Register"}
             </button>
           </fieldset>
         </form>
+
         <div className="flex justify-center items-center text-xs">
-          <p className=" text-text-primary mt-4  text-center max-w-2xs">
+          <p className="text-text-primary mt-4 text-center max-w-2xs">
             Your personal data helps enhance your website experience, manage your account access, and fulfill the
             purposes in{" "}
             <Link href={"/"} className="text-[#1D4ED8] hover:text-blue-400">

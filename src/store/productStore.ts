@@ -312,15 +312,14 @@ export const useProductStore = create<ProductState>((set, get) => ({
       // Calculate new average rating
       const newRating = (currentRating * currentReviewsCount + data.rating) / (currentReviewsCount + 1);
 
-      // Create new review object with JavaScript Date instead of serverTimestamp
       const newReview = {
         id: uuidv4(),
         userId: userId,
-        userName: userDisplayName, // Use the fetched or provided user name
-        userAvatar: userProfileAvatar, // Use the fetched or provided avatar
+        userName: userDisplayName,
+        userAvatar: userProfileAvatar,
         rating: data.rating,
         comment: data.comment || "",
-        createdAt: new Date(), // Use JavaScript Date instead of serverTimestamp()
+        createdAt: new Date(),
         helpful: 0,
         reported: false,
       };
@@ -374,7 +373,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
         userAvatar: string | null;
         rating: number;
         comment: string;
-        createdAt: FieldValue | Date | Timestamp; // Firebase server timestamp or Date object
+        createdAt: FieldValue | Date | Timestamp;
         helpful: number;
         reported: boolean;
       }
@@ -406,7 +405,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const updatedReview = {
         ...reviews[targetReviewIndex],
         ...data,
-        updatedAt: new Date(), // Use JavaScript Date instead of serverTimestamp()
+        updatedAt: new Date(),
       };
 
       // First remove the old review

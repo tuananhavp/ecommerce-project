@@ -57,7 +57,6 @@ const ProductCard = ({
   }, [id, isFavorite, fetchFavorites]);
 
   const handleAddToCart = async () => {
-    // Don't proceed if out of stock
     if (isOutOfStock) {
       Toast.fire({
         icon: "error",
@@ -66,7 +65,6 @@ const ProductCard = ({
       return;
     }
 
-    // Create a cart item with the required properties
     const cartItem: CartItem = {
       productID: id,
       name: name,
@@ -76,14 +74,12 @@ const ProductCard = ({
     };
 
     try {
-      // Add to cart
       await addToCart(cartItem);
       Toast.fire({
         icon: "success",
         title: `Added ${name} to cart`,
       });
     } catch (error) {
-      // Show error notification
       Swal.fire({
         title: "Error",
         text: error instanceof Error ? error.message : "Failed to add item to cart",
@@ -145,7 +141,6 @@ const ProductCard = ({
     >
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-        {/* Only show NEW badge if product is trending AND in stock */}
         {trending && !isOutOfStock && (
           <div className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">NEW</div>
         )}
@@ -174,7 +169,10 @@ const ProductCard = ({
             <Image
               src={imgUrl[0]}
               alt={name}
-              className={`object-contain transition-transform duration-500 ${isHovered ? "scale-110" : "scale-100"}`}
+              className={clsx(
+                "object-contain transition-transform duration-500",
+                isHovered ? "scale-110" : "scale-100"
+              )}
               width={180}
               height={180}
               style={{ maxHeight: "100%", width: "auto" }}
@@ -194,9 +192,10 @@ const ProductCard = ({
 
         {/* Quick action buttons */}
         <div
-          className={`absolute left-0 right-0 bottom-0 flex justify-center gap-2 transition-all duration-300 ${
+          className={clsx(
+            "absolute left-0 right-0 bottom-0 flex justify-center gap-2 transition-all duration-300",
             isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
+          )}
         >
           <Link
             href={`/product/${id}`}
@@ -207,9 +206,10 @@ const ProductCard = ({
           </Link>
           <button
             onClick={handleAddToCart}
-            className={`bg-white p-2 rounded-full shadow-md transition-all ${
-              isOutOfStock ? "cursor-not-allowed opacity-50 hover:bg-gray-100" : "hover:bg-gray-100"
-            }`}
+            className={clsx("bg-white p-2 rounded-full shadow-md transition-all", {
+              "cursor-not-allowed opacity-50 hover:bg-gray-100": isOutOfStock,
+              "hover:bg-gray-100": !isOutOfStock,
+            })}
             disabled={isOutOfStock}
             title={isOutOfStock ? "Out of Stock" : "Add to Cart"}
           >
@@ -257,25 +257,16 @@ const ProductCard = ({
               <span className="text-xs text-gray-500">
                 Available: <span className="font-medium">{stockQuantity}</span>
               </span>
-              {!isOutOfStock ? (
-                <span className="text-xs font-medium text-green-600">In Stock</span>
-              ) : (
-                <span className="text-xs font-medium text-red-500">Out of Stock</span>
-              )}
+              <span className={clsx("text-xs font-medium", isOutOfStock ? "text-red-500" : "text-green-600")}>
+                {isOutOfStock ? "Out of Stock" : "In Stock"}
+              </span>
             </div>
-            {!isOutOfStock && (
-              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                <div
-                  className="bg-green-500 h-1.5 rounded-full"
-                  style={{ width: `${Math.min(100, (stockQuantity / 40) * 100)}%` }}
-                ></div>
-              </div>
-            )}
-            {isOutOfStock && (
-              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                <div className="bg-red-500 h-1.5 rounded-full" style={{ width: "100%" }}></div>
-              </div>
-            )}
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+              <div
+                className={clsx("h-1.5 rounded-full", isOutOfStock ? "bg-red-500" : "bg-green-500")}
+                style={{ width: isOutOfStock ? "100%" : `${Math.min(100, (stockQuantity / 40) * 100)}%` }}
+              ></div>
+            </div>
           </div>
 
           {/* Add to cart button */}

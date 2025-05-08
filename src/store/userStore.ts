@@ -32,7 +32,6 @@ interface UserPagination {
 }
 
 interface UserStore {
-  // State
   users: AdminUserData[];
   currentUser: AdminUserData | null;
   isLoading: boolean;
@@ -40,17 +39,14 @@ interface UserStore {
   filters: UserFilters;
   pagination: UserPagination;
 
-  // User fetching methods
   fetchUsers: (reset?: boolean) => Promise<AdminUserData[]>;
   fetchMoreUsers: () => Promise<void>;
   getUserById: (userId: string) => Promise<AdminUserData | null>;
   searchUsers: (searchTerm: string) => Promise<void>;
 
-  // Filter and sort methods
   setFilters: (filters: UserFilters) => void;
   resetFilters: () => void;
 
-  // User management methods
   updateUserRole: (userId: string, role: "customer" | "admin") => Promise<boolean>;
   updateUserDetails: (userId: string, data: Partial<AdminUserData>) => Promise<boolean>;
   deleteUser: (userId: string) => Promise<boolean>;
@@ -86,7 +82,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
         });
       }
 
-      // Start building the query
       const userQuery = collection(db, "users");
       const constraints = [];
 
@@ -107,7 +102,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const q = query(userQuery, ...constraints);
       const querySnapshot = await getDocs(q);
 
-      // Process results
       let fetchedUsers = [];
       for (const doc of querySnapshot.docs) {
         const userData = doc.data() as AdminUserData;
@@ -159,7 +153,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
         error: "Failed to fetch users",
         isLoading: false,
       });
-      return []; // Return empty array on error
+      return [];
     }
   },
 
@@ -172,7 +166,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
     }
   },
 
-  // Get a single user by ID
   getUserById: async (userId: string) => {
     try {
       set({ isLoading: true, error: null });
@@ -208,7 +201,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
     }
   },
 
-  // Search for users
   searchUsers: async (searchTerm: string) => {
     set({
       filters: {
@@ -220,19 +212,16 @@ export const useUserStore = create<UserStore>((set, get) => ({
     await get().fetchUsers();
   },
 
-  // Update filters
   setFilters: (filters: UserFilters) => {
     set({ filters: { ...get().filters, ...filters } });
     get().fetchUsers();
   },
 
-  // Reset filters
   resetFilters: () => {
     set({ filters: {} });
     get().fetchUsers();
   },
 
-  // Update user role
   updateUserRole: async (userId: string, role: "customer" | "admin") => {
     try {
       set({ isLoading: true, error: null });
@@ -243,7 +232,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
         updatedAt: serverTimestamp(),
       });
 
-      // Update local state
       const users = get().users.map((user) => {
         if (user.id === userId) {
           return { ...user, role, updatedAt: Timestamp.now() };
@@ -251,7 +239,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
         return user;
       });
 
-      // Update currentUser if needed
       let currentUser = get().currentUser;
       if (currentUser && currentUser.id === userId) {
         currentUser = { ...currentUser, role, updatedAt: Timestamp.now() };
@@ -269,7 +256,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
     }
   },
 
-  // Update user details
   updateUserDetails: async (userId: string, data: Partial<AdminUserData>) => {
     try {
       set({ isLoading: true, error: null });
@@ -280,7 +266,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
         updatedAt: serverTimestamp(),
       });
 
-      // Update local state
       const users = get().users.map((user) => {
         if (user.id === userId) {
           return { ...user, ...data, updatedAt: Timestamp.now() };
@@ -288,7 +273,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
         return user;
       });
 
-      // Update currentUser if needed
       let currentUser = get().currentUser;
       if (currentUser && currentUser.id === userId) {
         currentUser = { ...currentUser, ...data, updatedAt: Timestamp.now() };
@@ -306,7 +290,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
     }
   },
 
-  // Delete user
   deleteUser: async (userId: string) => {
     try {
       set({ isLoading: true, error: null });

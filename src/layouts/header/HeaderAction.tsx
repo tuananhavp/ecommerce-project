@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
-  IoLocationOutline,
   IoSearchOutline,
   IoHeartOutline,
   IoCartOutline,
@@ -114,14 +113,6 @@ const HeaderAction = () => {
             <span className="font-bold md:text-2xl text-sm">JinStore</span>
           </Link>
 
-          <div className="xl:flex hidden items-center gap-2">
-            <IoLocationOutline className="size-7" />
-            <div className="flex flex-col">
-              <span className="md:text-[11px] text-[10px] text-gray-primary">Deliver to</span>
-              <span className="md:text-[13px] text-[10px] font-bold">Your Address</span>
-            </div>
-          </div>
-
           <div className="sm:flex hidden md:min-w-2/3 min-w-1/2 px-2 items-center grow-1 bg-[#F3F4F6] shadow-sm rounded-xl">
             <input
               type="text"
@@ -132,7 +123,7 @@ const HeaderAction = () => {
           </div>
         </div>
 
-        <div className="sm:flex hidden items-center gap-3 px-5">
+        <div className="sm:flex hidden   items-center gap-3 px-5">
           <Link href={"/favourite"} className="relative">
             <IoHeartOutline className="md:size-8 size-4 hover:opacity-60" />
             {isMounted && totalFavorites > 0 && (

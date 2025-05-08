@@ -14,24 +14,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated, isLoading, initialize } = useAuthStore();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Initialize auth state when component mounts
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  // Check user role both from auth store and localStorage
   useEffect(() => {
     const checkUserRole = () => {
-      // First try to get role from auth store (preferred)
       if (!isLoading) {
         if (isAuthenticated && user?.role === "admin") {
           setIsAuthorized(true);
           return;
         }
 
-        // If user is authenticated but not admin, or not authenticated
         if (isAuthenticated || !isAuthenticated) {
-          // Fallback to localStorage as backup
           try {
             const userString = localStorage.getItem("user");
 
@@ -43,7 +38,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               }
             }
 
-            // If we got here, user is not authorized
             setIsAuthorized(false);
           } catch (error) {
             console.error("Error checking user role in localStorage:", error);
@@ -56,7 +50,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     checkUserRole();
   }, [isLoading, isAuthenticated, user]);
 
-  // Redirect unauthorized users to home page
   useEffect(() => {
     if (isAuthorized === false) {
       const redirectTimeout = setTimeout(() => {
@@ -67,7 +60,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthorized, router]);
 
-  // Show loading state while checking authorization
   if (isLoading || isAuthorized === null) {
     return (
       <div className="flex items-center justify-center h-screen bg-layout-primary">
@@ -76,7 +68,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Show unauthorized message if not authorized (this will be briefly shown before redirect)
   if (isAuthorized === false) {
     return (
       <div className="flex items-center justify-center h-screen bg-layout-primary">
@@ -90,7 +81,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Only render the dashboard if authorized
   return (
     <div className="flex h-screen overflow-hidden bg-layout-primary font-dashboard">
       <AppSidebar />
