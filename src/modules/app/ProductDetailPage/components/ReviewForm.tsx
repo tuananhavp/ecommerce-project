@@ -63,7 +63,7 @@ const ReviewForm = ({ productId, onReviewAdded }: ReviewFormProps) => {
       if (onReviewAdded) {
         onReviewAdded();
       }
-    } catch (error) {
+    } catch {
       Swal.fire({
         title: "Error",
         text: "Failed to submit your review. Please try again.",

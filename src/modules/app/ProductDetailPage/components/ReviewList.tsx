@@ -22,8 +22,7 @@ interface RatingStatistics {
   distribution: number[];
 }
 
-const ReviewList = ({ productId, reviews = [], refreshKey = 0 }: ReviewListProps) => {
-  console.log(reviews);
+const ReviewList = ({ productId, reviews = [] }: ReviewListProps) => {
   const { markReviewHelpful, reportReview, isLoading } = useProductStore();
   const { user } = useAuthStore();
   const [statistics, setStatistics] = useState<RatingStatistics>({
@@ -95,7 +94,7 @@ const ReviewList = ({ productId, reviews = [], refreshKey = 0 }: ReviewListProps
         timer: 2000,
         showConfirmButton: false,
       });
-    } catch (error) {
+    } catch {
       Swal.fire({
         title: "Error",
         text: "Failed to mark as helpful",
@@ -150,7 +149,7 @@ const ReviewList = ({ productId, reviews = [], refreshKey = 0 }: ReviewListProps
             timer: 2000,
             showConfirmButton: false,
           });
-        } catch (error) {
+        } catch {
           Swal.fire({
             title: "Error",
             text: "Failed to report review",
@@ -219,7 +218,7 @@ const ReviewList = ({ productId, reviews = [], refreshKey = 0 }: ReviewListProps
               <div className="flex-1">
                 {/* Rating Distribution */}
                 <div className="space-y-2">
-                  {[5, 4, 3, 2, 1].map((star, index) => {
+                  {[5, 4, 3, 2, 1].map((star) => {
                     const count = statistics.distribution[5 - star];
                     const percentage = statistics.total > 0 ? (count / statistics.total) * 100 : 0;
 

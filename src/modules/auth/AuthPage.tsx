@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
 import { useAuthStore } from "@/store/authStore";
 
-import SignIn from "./components/SignIn/SignIn";
-import SignUp from "./components/SignUp/SignUp";
+import SignIn from "./components/SignIn";
+import SignUp from "./components/SignUp";
 
 const AuthPage = () => {
   const [hasStoredUser, setHasStoredUser] = useState(false);

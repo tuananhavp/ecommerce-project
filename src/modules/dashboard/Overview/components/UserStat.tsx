@@ -1,5 +1,7 @@
 import React from "react";
 
+import Image from "next/image";
+
 import { FaSpinner, FaHeart, FaEye } from "react-icons/fa";
 
 interface UserStatistics {
@@ -84,8 +86,8 @@ const UserStat: React.FC<UserStatProps> = ({ statistics, orderStats, isLoading }
         <div className="stat bg-white">
           <div className="stat-figure text-secondary">
             <div className="avatar online">
-              <div className="w-8 sm:w-12 md:w-16 rounded-full">
-                <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt="Avatar" />
+              <div className="w-8 sm:w-12 md:w-16 rounded-full relative">
+                <Image src="/daisyavatar.png" alt="Avatar" fill className="rounded-full object-cover" />
               </div>
             </div>
           </div>

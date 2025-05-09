@@ -15,7 +15,7 @@ const ProductDescription = ({ product }: ProductDescriptionProps) => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleReviewAdded = () => {
-    // Force refresh of reviews
+    console.log(refreshKey);
     setRefreshKey((prev) => prev + 1);
   };
 

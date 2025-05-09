@@ -49,7 +49,7 @@ const AppSidebar = () => {
             <>
               {/* Logo */}
               <div className="h-16 w-fit mt-3">
-                <Link href="/dashboard">
+                <Link href="/">
                   <Image src="/logo-text.png" alt="Logo" width={150} height={40} />
                 </Link>
               </div>
