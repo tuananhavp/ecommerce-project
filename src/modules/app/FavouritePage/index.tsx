@@ -23,7 +23,7 @@ const FavoritePage: React.FC = () => {
   }
 
   return (
-    <div className="p-4 mx-auto md:w-8/12 lg:w-10/12 bg-white shadow-md rounded-lg">
+    <div className="px-4 py-6 mx-auto w-full sm:w-11/12 md:w-10/12 lg:w-10/12 xl:w-9/12 bg-white shadow-md rounded-lg">
       <FavoriteHeader />
       <FavoriteList favorites={favorites} />
     </div>

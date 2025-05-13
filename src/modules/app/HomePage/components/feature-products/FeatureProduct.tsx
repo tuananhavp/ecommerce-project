@@ -23,75 +23,45 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
     (product) => product.category == "Frozen Foods" && product.trending === true && product.stockQuantity < 120
   )[0];
 
+  const filterFeatureProducts = products?.filter((product) => product.trending === true && product.stockQuantity > 1);
+
   if (isLoading) {
     return (
-      <div className=" min-h-72 flex justify-center items-">
-        <Loading className="mt-48" />
+      <div className="min-h-72 flex justify-center items-center">
+        <Loading className="mt-16 sm:mt-24 md:mt-32" />
       </div>
     );
   }
+
   return (
-    <div className="my-10 w-10/12 mx-auto">
+    <div className="my-8 sm:my-10 w-11/12 sm:w-10/12 mx-auto">
       <FeatureBanner />
-      <div className=" flex justify-between items-center mt-6">
-        <div className="flex justify-between items-center gap-5">
-          <h2 className="text-heading-primary font-bold md:text-xl text-xs">Feature Products</h2>
-          <span className="md:block hidden text-shadow-gray-third font-light leading-8 lg:text-sm text-xs">
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 sm:mt-8 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mb-3 sm:mb-0">
+          <h2 className="text-heading-primary font-bold text-base sm:text-lg md:text-xl">Feature Products</h2>
+          <span className="text-shadow-gray-third font-light text-xs sm:text-sm hidden md:block">
             New products with updated stocks.
           </span>
         </div>
-        <Link href={"/product/category"} className="border-2 border-gray-100 rounded-2xl p-3 hover:text-gray-500 ">
+
+        <Link
+          href={"/product/category"}
+          className="border-2 border-gray-100 rounded-2xl p-2 sm:p-3 hover:text-gray-500 hover:border-gray-200 transition-all duration-300"
+        >
           <div className="flex items-center gap-2">
-            <span className="font-bold text[#212529] sm:text-sm text-[10px] ">View All</span>
-            <FaArrowRight />
+            <span className="font-bold text-[#212529] text-xs sm:text-sm">View All</span>
+            <FaArrowRight className="text-xs sm:text-sm" />
           </div>
         </Link>
       </div>
-      <div className=" hidden xl:grid grid-cols-3 grid-rows-1 gap-4 mt-10">
-        <div>
-          <div className="grid grid-cols-1 grid-rows-3 gap-4">
-            {products &&
-              products?.slice(3, 6).map((product, index) => {
-                return (
-                  <FeatureProductCard
-                    key={index}
-                    id={product.id}
-                    name={product.name}
-                    description={product.description}
-                    oldPrice={product.oldPrice}
-                    newPrice={product.newPrice}
-                    stockQuantity={product.stockQuantity}
-                    category={product.category}
-                    trending={product.trending}
-                    imgUrl={product.imgUrl}
-                    rating={product.rating}
-                  />
-                );
-              })}
-          </div>
-        </div>
-        <div className="">
-          {standoutProduct && (
-            <StandoutProductCard
-              id={standoutProduct?.id}
-              name={standoutProduct?.name}
-              description={standoutProduct?.description}
-              oldPrice={standoutProduct?.oldPrice}
-              newPrice={standoutProduct?.newPrice}
-              stockQuantity={standoutProduct?.stockQuantity}
-              category={standoutProduct?.category}
-              trending={standoutProduct?.trending}
-              imgUrl={standoutProduct?.imgUrl}
-              rating={standoutProduct?.rating}
-            />
-          )}
-        </div>
-        <div className="grid grid-cols-1 grid-rows-3 gap-4">
+
+      <div className="hidden xl:grid grid-cols-3 gap-4 mt-8">
+        <div className="grid grid-rows-3 gap-4 h-full" style={{ minHeight: "calc(100vh - 200px)" }}>
           {products &&
-            products?.slice(9, 12).map((product, index) => {
-              return (
+            products?.slice(3, 6).map((product, index) => (
+              <div key={index} className="h-1/3">
                 <FeatureProductCard
-                  key={index}
                   id={product.id}
                   name={product.name}
                   description={product.description}
@@ -101,62 +71,109 @@ const FeatureProduct = ({ products, isLoading }: { products: ProductCardProps[] 
                   category={product.category}
                   trending={product.trending}
                   imgUrl={product.imgUrl}
+                  rating={product.rating}
                 />
-              );
-            })}
+              </div>
+            ))}
+        </div>
+
+        <div className="flex items-center h-full" style={{ minHeight: "calc(100vh - 200px)" }}>
+          {standoutProduct && (
+            <div className="w-full h-full">
+              <StandoutProductCard
+                id={standoutProduct?.id}
+                name={standoutProduct?.name}
+                description={standoutProduct?.description}
+                oldPrice={standoutProduct?.oldPrice}
+                newPrice={standoutProduct?.newPrice}
+                stockQuantity={standoutProduct?.stockQuantity}
+                category={standoutProduct?.category}
+                trending={standoutProduct?.trending}
+                imgUrl={standoutProduct?.imgUrl}
+                rating={standoutProduct?.rating}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-rows-3 gap-4 h-full" style={{ minHeight: "calc(100vh - 200px)" }}>
+          {filterFeatureProducts &&
+            filterFeatureProducts?.slice(0, 3).map((product, index) => (
+              <div key={index} className="h-1/3">
+                <FeatureProductCard
+                  id={product.id}
+                  name={product.name}
+                  description={product.description}
+                  oldPrice={product.oldPrice}
+                  newPrice={product.newPrice}
+                  stockQuantity={product.stockQuantity}
+                  category={product.category}
+                  trending={product.trending}
+                  imgUrl={product.imgUrl}
+                  rating={product.rating}
+                />
+              </div>
+            ))}
         </div>
       </div>
-      <div className="xl:hidden block mt-10">
-        {
-          <Swiper
-            spaceBetween={15}
-            loop={true}
-            navigation={{
-              enabled: true,
-              hideOnClick: true,
-            }}
-            modules={[Pagination, Navigation]}
-            className="mySwiper"
-            breakpoints={{
-              200: {
-                slidesPerView: 1,
-                spaceBetween: 10,
-              },
-              620: {
-                slidesPerView: 2,
-                spaceBetween: 10,
-              },
-              890: {
-                slidesPerView: 3,
-                spaceBetween: 10,
-              },
-              1280: {
-                slidesPerView: 5,
-                spaceBetween: 10,
-              },
-            }}
-          >
-            {products &&
-              products?.map((product, index) => {
-                return (
-                  <SwiperSlide key={index}>
-                    <ProductCard
-                      key={index}
-                      id={product.id}
-                      name={product.name}
-                      description={product.description}
-                      oldPrice={product.oldPrice}
-                      newPrice={product.newPrice}
-                      stockQuantity={product.stockQuantity}
-                      category={product.category}
-                      trending={product.trending}
-                      imgUrl={product.imgUrl}
-                    />
-                  </SwiperSlide>
-                );
-              })}
-          </Swiper>
-        }
+
+      {/* Mobile/Tablet Swiper */}
+      <div className="xl:hidden block mt-6 sm:mt-8">
+        <Swiper
+          spaceBetween={15}
+          loop={true}
+          navigation={{
+            enabled: true,
+            hideOnClick: true,
+          }}
+          pagination={{
+            clickable: true,
+            dynamicBullets: true,
+          }}
+          modules={[Pagination, Navigation]}
+          className="mySwiper pb-10"
+          breakpoints={{
+            320: {
+              slidesPerView: 1,
+              spaceBetween: 10,
+            },
+            480: {
+              slidesPerView: 1.5,
+              spaceBetween: 15,
+            },
+            640: {
+              slidesPerView: 2,
+              spaceBetween: 15,
+            },
+            768: {
+              slidesPerView: 2.5,
+              spaceBetween: 15,
+            },
+            1024: {
+              slidesPerView: 3,
+              spaceBetween: 20,
+            },
+          }}
+        >
+          {filterFeatureProducts &&
+            filterFeatureProducts?.map((product, index) => (
+              <SwiperSlide key={index}>
+                <div className="px-1 pb-2">
+                  <ProductCard
+                    id={product.id}
+                    name={product.name}
+                    description={product.description}
+                    oldPrice={product.oldPrice}
+                    newPrice={product.newPrice}
+                    stockQuantity={product.stockQuantity}
+                    category={product.category}
+                    trending={product.trending}
+                    imgUrl={product.imgUrl}
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+        </Swiper>
       </div>
     </div>
   );

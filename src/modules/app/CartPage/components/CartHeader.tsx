@@ -11,15 +11,15 @@ interface CartHeaderProps {
 const CartHeader = ({ onClearCart, isAllSelected, onToggleSelectAll, selectedCount, totalCount }: CartHeaderProps) => {
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <h2 className="text-xl font-bold">Your Cart</h2>
-        <button className="btn btn-sm btn-error" onClick={onClearCart} aria-label="Clear cart">
+        <button className="btn btn-sm btn-error text-xs sm:text-sm" onClick={onClearCart} aria-label="Clear cart">
           Clear Cart
         </button>
       </div>
 
       {/* Selection header */}
-      <div className="flex justify-between items-center p-2 bg-gray-100 rounded mb-4">
+      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center p-2 bg-gray-100 rounded mb-4 gap-2">
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -29,9 +29,11 @@ const CartHeader = ({ onClearCart, isAllSelected, onToggleSelectAll, selectedCou
             onChange={onToggleSelectAll}
             aria-label="Select all items"
           />
-          <label htmlFor="select-all">Select All Items</label>
+          <label htmlFor="select-all" className="text-sm sm:text-base">
+            Select All Items
+          </label>
         </div>
-        <div className="text-sm">
+        <div className="text-xs sm:text-sm">
           {selectedCount} of {totalCount} items selected
         </div>
       </div>

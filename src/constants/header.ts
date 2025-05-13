@@ -34,8 +34,8 @@ export const navigationItems: NavigationItems = {
     { name: "Favorites", link: "/favourite", icon: IoHeartOutline, badge: "favorite" },
   ],
   info: [
-    { name: "About", link: "/about", icon: IoInformationCircleOutline },
-    { name: "Contact", link: "/contact", icon: IoCallOutline },
+    { name: "About", link: "/", icon: IoInformationCircleOutline },
+    { name: "Contact", link: "/", icon: IoCallOutline },
   ],
   customer: [
     { name: "Profile", link: "/profile", icon: IoPersonOutline },

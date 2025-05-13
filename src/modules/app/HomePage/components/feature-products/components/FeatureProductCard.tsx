@@ -156,11 +156,13 @@ const FeatureProductCard = ({
         </button>
       </div>
 
-      <Link href={`/product/${id}`}>
-        <figure>
-          <Image src={imgUrl[0]} alt={name} className="object-cover" width={177} height={177} />
-        </figure>
-      </Link>
+      <div className="w-full md:w-1/3 flex-shrink-0 p-2">
+        <Link href={`/product/${id}`}>
+          <figure>
+            <Image src={imgUrl[0]} alt={name} className="object-cover" width={177} height={177} />
+          </figure>
+        </Link>
+      </div>
 
       <div className="card-body">
         <Link href={`/product/${id}`}>

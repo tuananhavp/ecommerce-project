@@ -32,9 +32,13 @@ const FavoriteHeader = () => {
   };
 
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <h2 className="text-xl font-bold">Your Favorites</h2>
-      <button className="btn btn-sm btn-error" onClick={handleClearFavorites} aria-label="Clear favorites list">
+      <button
+        className="btn btn-sm btn-error text-xs sm:text-sm"
+        onClick={handleClearFavorites}
+        aria-label="Clear favorites list"
+      >
         Clear Favorites
       </button>
     </div>

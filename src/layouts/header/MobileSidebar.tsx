@@ -27,7 +27,7 @@ interface MobileSidebarProps {
   favoritesCount: number;
 }
 
-const MobileSidebar: React.FC<MobileSidebarProps> = ({
+const MobileSidebar = ({
   isOpen,
   onClose,
   user,
@@ -35,7 +35,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
   isMounted,
   cartItemsCount,
   favoritesCount,
-}) => {
+}: MobileSidebarProps) => {
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userType = user ? (user.isAdmin ? "admin" : "customer") : "guest";
