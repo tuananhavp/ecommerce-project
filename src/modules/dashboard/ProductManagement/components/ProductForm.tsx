@@ -23,7 +23,7 @@ type ProductValues = z.infer<typeof productSchema>;
 
 const ProductForm = () => {
   const router = useRouter();
-  const categorySelect = ["Pick a category", "Vegetables", "Beverages", "Biscuits & Snacks", "Frozen Foods", "Grocery"];
+  const categorySelect = ["Pick a category", "Vegetables", "Beverages", "Snacks", "Frozen Foods", "Grocery"];
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [additionalImages, setAdditionalImages] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);

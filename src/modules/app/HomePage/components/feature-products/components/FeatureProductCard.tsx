@@ -27,7 +27,6 @@ const FeatureProductCard = ({
   const { addToCart } = useCartStore();
   const { addToFavorites, removeFromFavorites, isFavorite, fetchFavorites } = useFavoriteStore();
   const [isMounted, setIsMounted] = useState(false);
-  console.log(productRating);
   // Calculate the effective price
   const price = (newPrice ?? 0) > 0 ? newPrice : oldPrice ?? 0;
   // Use product rating or default to 3

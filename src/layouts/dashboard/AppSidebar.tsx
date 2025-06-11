@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { TiThMenu } from "react-icons/ti";
 
 import { SIDEBAR_NAV } from "@/constants/dashboard";
+import { useAuthStore } from "@/store/authStore";
 
 import MiniSidebarNavItem from "./components/MiniSidebarNavItem";
 import ProfileBadge from "./components/ProfileBadge";
@@ -15,6 +16,8 @@ import SidebarNavCategory from "./components/SidebarNavCategory";
 const AppSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  const { user } = useAuthStore();
 
   const pathname = usePathname();
   const currentPath = pathname.split("/").slice(2)[0] || "";
@@ -55,7 +58,7 @@ const AppSidebar = () => {
               </div>
 
               {/* User Profile */}
-              <ProfileBadge />
+              <ProfileBadge user={user} />
 
               {/* Navigation Items */}
               <ul className="menu rounded-box w-full mt-6">
@@ -74,7 +77,7 @@ const AppSidebar = () => {
             // Collapsed/Mini Sidebar
             <div className="flex flex-col items-center pt-16">
               {/* Mini Profile Badge */}
-              <ProfileBadge isCompact />
+              <ProfileBadge user={user} isCompact={true} />
 
               {/* Mini Navigation Icons */}
               <div className="flex flex-col gap-6 items-center">

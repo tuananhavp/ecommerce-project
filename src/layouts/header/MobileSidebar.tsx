@@ -14,7 +14,7 @@ interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  isAdmin?: boolean;
+  role?: "admin" | "customer";
 }
 
 interface MobileSidebarProps {
@@ -38,7 +38,7 @@ const MobileSidebar = ({
 }: MobileSidebarProps) => {
   const router = useRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const userType = user ? (user.isAdmin ? "admin" : "customer") : "guest";
+  const userType = user ? (user.role === "admin" ? "admin" : "customer") : "guest";
 
   // Handle click outside to close sidebar
   useEffect(() => {

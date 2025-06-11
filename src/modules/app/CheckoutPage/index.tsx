@@ -223,7 +223,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const countryOptions = ["Select Country", "United States (US)", "Canada", "United Kingdom", "Australia", "Vietnam"];
+  const countryOptions = ["Select Country", "USA", "China", "Thailand", "Vietnam"];
 
   // If no items are selected and we haven't just placed an order, show loading while redirect happens
   if (selectedProducts.length === 0 && !orderPlacedRef.current) {
