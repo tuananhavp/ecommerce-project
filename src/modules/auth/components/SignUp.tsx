@@ -69,6 +69,7 @@ const SignUp = () => {
 
             <InputField
               name="email"
+              autoComplete="email"
               title="Email"
               type="email"
               placeholder="Email"
@@ -80,6 +81,7 @@ const SignUp = () => {
             <InputField
               name="password"
               title="Password"
+              autoComplete="current-password"
               type="password"
               placeholder="Password"
               inputClassName="input w-full"

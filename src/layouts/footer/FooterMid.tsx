@@ -57,7 +57,14 @@ const FooterMid = () => {
         <h1 className="font-bold">Dowload our app</h1>
         <div className="flex items-center gap-2.5 mt-3.5">
           <a href="" target="_blank">
-            <Image src={"/google.png"} width={120} height={120} alt="google-chplay" />
+            <Image
+              className="w-28 h-auto"
+              loading="lazy"
+              src={"/google.png"}
+              width={120}
+              height={40}
+              alt="google-chplay"
+            />
           </a>
           <div className="flex flex-col">
             <p className="text-gray-primary text-[10px] inline-block">Dowload App Get</p>
@@ -66,7 +73,14 @@ const FooterMid = () => {
         </div>
         <div className="flex items-center gap-2.5 mt-3.5">
           <a href="" target="_blank">
-            <Image src={"/appstore.png"} alt="google-chplay" width={120} height={120} />
+            <Image
+              className="w-28 h-auto"
+              loading="lazy"
+              src={"/appstore.png"}
+              alt="google-chplay"
+              width={120}
+              height={40}
+            />
           </a>
           <div className="flex flex-col">
             <p className="text-gray-primary text-[10px] inline-block">Dowload App Get</p>

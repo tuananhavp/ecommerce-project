@@ -59,6 +59,7 @@ const SignIn = () => {
           <fieldset className="fieldset w-full bg-white border border-base-300 p-4 rounded-box">
             <InputField
               name="email"
+              autoComplete="email"
               title="Email"
               type="email"
               placeholder="Email"
@@ -70,6 +71,7 @@ const SignIn = () => {
             <InputField
               name="password"
               title="Password"
+              autoComplete="current-password"
               type="password"
               placeholder="Password"
               inputClassName="w-full"

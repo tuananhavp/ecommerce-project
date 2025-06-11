@@ -54,42 +54,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", email));
+      const q = query(usersRef, where("email", "==", email), where("password", "==", password));
       const querySnapshot = await getDocs(q);
-
       if (!querySnapshot.empty) {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-          const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
 
-          if (userDoc.exists()) {
-            setTimeout(() => {
-              useCartStore.getState().mergeLocalCartWithUserCart();
-              useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
-            }, 500);
-            const userData = userDoc.data() as UserProfile;
-            set({
-              user: { ...userData, ...userCredential.user },
-              isAuthenticated: true,
-              isLoading: false,
-            });
-            localStorage.setItem("user", JSON.stringify({ ...userCredential.user, ...userData }));
-          } else {
-            set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
-          }
-        } catch (authError: any) {
-          // Handle Firebase Auth errors
-          const errorCode = authError.code;
-          if (
-            errorCode === "auth/wrong-password" ||
-            errorCode === "auth/user-not-found" ||
-            errorCode === "auth/invalid-credential" // add this line!
-          ) {
-            set({ error: "Email or password is wrong. Please try again", isLoading: false });
-          } else {
-            set({ error: authError.message, isLoading: false });
-          }
+        if (userDoc.exists()) {
+          setTimeout(() => {
+            useCartStore.getState().mergeLocalCartWithUserCart();
+            useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
+          }, 500);
+          const userData = userDoc.data() as UserProfile;
+          set({
+            user: { ...userData, ...userCredential.user },
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          localStorage.setItem("user", JSON.stringify({ ...userCredential.user, ...userData }));
+        } else {
+          set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
         }
       } else {
         set({ error: "Email or password is wrong. Please try again", isLoading: false });
@@ -190,7 +175,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       let updatedUserData: Partial<UserProfile> = {};
 
-      // Update basic profile info in Firestore
       updatedUserData = {
         ...(username && { username }),
         ...(phone && { phone }),
@@ -199,9 +183,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         ...(typeof primaryAddressIndex !== "undefined" && { primaryAddressIndex }),
       };
 
-      // Update email and password if provided (requires reauthentication)
       if ((email && email !== currentUser.email) || password) {
-        // Reauthenticate the user if currentPassword is provided
         if (currentPassword) {
           const credential = EmailAuthProvider.credential(currentUser.email!, currentPassword);
           await reauthenticateWithCredential(currentUser, credential);
