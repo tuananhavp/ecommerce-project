@@ -58,24 +58,38 @@ export const useAuthStore = create<AuthState>((set) => ({
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+          const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
 
-        if (userDoc.exists()) {
-          setTimeout(() => {
-            useCartStore.getState().mergeLocalCartWithUserCart();
-            useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
-          }, 500);
-          const userData = userDoc.data() as UserProfile;
-          set({
-            user: { ...userData, ...userCredential.user },
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          localStorage.setItem("user", JSON.stringify({ ...userCredential.user, ...userData }));
-        } else {
-          set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
+          if (userDoc.exists()) {
+            setTimeout(() => {
+              useCartStore.getState().mergeLocalCartWithUserCart();
+              useFavoriteStore.getState().mergeFavoritesWithUserFavorites();
+            }, 500);
+            const userData = userDoc.data() as UserProfile;
+            set({
+              user: { ...userData, ...userCredential.user },
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            localStorage.setItem("user", JSON.stringify({ ...userCredential.user, ...userData }));
+          } else {
+            set({ user: userCredential.user, isAuthenticated: true, isLoading: false });
+          }
+        } catch (authError: any) {
+          // Handle Firebase Auth errors
+          const errorCode = authError.code;
+          if (
+            errorCode === "auth/wrong-password" ||
+            errorCode === "auth/user-not-found" ||
+            errorCode === "auth/invalid-credential" // add this line!
+          ) {
+            set({ error: "Email or password is wrong. Please try again", isLoading: false });
+          } else {
+            set({ error: authError.message, isLoading: false });
+          }
         }
       } else {
         set({ error: "Email or password is wrong. Please try again", isLoading: false });

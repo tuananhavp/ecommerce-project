@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛍️ E-commerce Website Project
 
-## Getting Started
+A modern e-commerce web application built with **Next.js**, **Firebase**, **Tailwind CSS**, and **TypeScript**. It includes features like user authentication, product browsing, shopping cart, favorites, admin dashboard, and order tracking.
 
-First, run the development server:
+## 🚀 Live Demo
+
+> 🌐 [Try it Live] > https://ecommerce-project-nine-ashen.vercel.app/
+
+---
+
+## 📸 Features
+
+- 🔐 **Authentication** – Login/Signup with Firebase Auth
+- 🛍️ **Product Listing** – View, search, and filter products
+- ❤️ **Favorites** – Save favorite products
+- 🛒 **Cart & Checkout** – Add to cart and place orders
+- 🧾 **Order Tracking** – View past orders
+- 🛠️ **Admin Dashboard** – CRUD operations for products and users
+
+---
+
+## 🧑‍💻 Tech Stack
+
+- **Frontend**: Next.js, TypeScript, Tailwind CSS, Zustand, React Hook Form, Zod
+- **Backend**: Firebase (Auth, Firestore, Storage)
+- **UI**: daisyUI
+- **Media**: Cloudinary
+
+---
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- Node.js ≥ 18
+- Firebase account & project
+- Cloudinary account
+
+### 1. Clone the repo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/tuananhavp/ecommerce-project.git
+cd ecommerce-project
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a .env.local file in the root with the following:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+NEXT_PUBLIC_FIREBASE_API_KEY=your_key <br>
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com <br>
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id <br>
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com <br>
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id <br>
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id <br>
+CLOUDINARY_UPLOAD_PRESET=your_preset <br>
+CLOUDINARY_CLOUD_NAME=your_cloud_name
 
-## Learn More
+And run your app in dev local:
 
-To learn more about Next.js, take a look at the following resources:
+```
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+You can create a new admin account as a **vendor** in the register or sign in with this accout <br>
+jack5tia@gmail.com <br>
+12345678
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### This is just personal project if you see any errors in this website, please email me: tuananhavp@gmail.com
